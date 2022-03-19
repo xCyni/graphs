@@ -1,7 +1,6 @@
 // Configuration options
 const init_phones = ["HTH67"],                      // Optional. Which graphs to display on initial load. Note: Share URLs will override this set
       DIR = "data/",                                // Directory where graph files are stored
-      data_format = "AudioTools",                   // Accepts "AudioTools," "REW," or "other"
       default_channels = ["L","R"],                 // Which channels to display. Avoid javascript errors if loading just one channel per phone
       default_normalization = "dB",                 // Sets default graph normalization mode. Accepts "dB" or "Hz"
       default_norm_db = 60,                         // Sets default dB normalization point
@@ -64,26 +63,13 @@ function watermark(svg) {
 
 
 
-// Set up tsvParse (?) with default values for AudioTools and REW measurements
-function initTsvParse() {
-    if ( data_format.toLowerCase() === "audiotools" ) {
-        var dataStart = 3,
-            dataEnd = 482;
-    } else if ( data_format.toLowerCase() === "rew" ) {
-        var dataStart = 14,
-            dataEnd = 493;
-    } else {
-        // If exporting data from something other than AudioTools or REW, edit these vals to indicate on which lines of your text files the measurements data begins and ends
-        var dataStart = 2,
-            dataEnd = 482;
-    }
-    
-    tsvParse = fr => d3.tsvParseRows(fr).slice(dataStart,dataEnd)
-        .map(r=>r.map(d=>+d));
+// Parse fr text data from REW or AudioTool format with whatever separator
+function tsvParse(fr) {
+    return fr.split(/[\r\n]/)
+        .map(l => l.trim()).filter(l => l[0] !== '*')
+        .map(l => l.split(/[\s,]/).map(e => parseFloat(e)).slice(0, 2))
+        .filter(t => !isNaN(t[0]) && !isNaN(t[1]));
 }
-initTsvParse();
-
-
 
 // Apply stylesheet based layout options above
 function setLayout() {
