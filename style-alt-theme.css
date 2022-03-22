@@ -22,7 +22,8 @@
     --scrollbar-accent: 0,0,0;
 
     --header-color: #C82647;
-    --header-links-color: hsl(0, 0%, 100%);
+    --header-links-color: #fff;
+    --header-menu-icon-color: #fff;
 
     --logo-filter: none;
     --svg-filter: none;
@@ -50,7 +51,8 @@ body.dark-mode {
     --scrollbar-accent: 255,255,255;
 
     --header-color: #C82647;
-    --header-links-color: hsl(0, 0%, 100%);
+    --header-links-color: #fff;
+    --header-menu-icon-color: #fff;
 
     --logo-filter: none;
     --svg-filter: none;

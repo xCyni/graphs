@@ -110,20 +110,27 @@ doc.html(`
           <div class="selector-tabs">
             <button class="brands" data-list="brands">Brands</button>
             <button class="models" data-list="models">Models</button>
+            <button class="extra">Extra</button>
           </div>
 
-          <input class="search" type="text" inputmode="search" placeholder="Search" onclick="this.focus();this.select()"/>
+          <div class="selector-panel">
+            <input class="search" type="text" inputmode="search" placeholder="Search" onclick="this.focus();this.select()"/>
 
-          <svg class="chevron" viewBox="0 0 12 8" preserveAspectRatio="none">
-            <path d="M0 0h4c0 1.5,5 3,7 4c-2 1,-7 2.5,-7 4h-4c0 -3,4 -3,4 -4s-4 -1,-4 -4"/>
-          </svg>
-          <svg class="stop" viewBox="0 0 4 1">
-            <path d="M4 1H0C3 1 3.2 0.8 4 0Z"/>
-          </svg>
+            <svg class="chevron" viewBox="0 0 12 8" preserveAspectRatio="none">
+              <path d="M0 0h4c0 1.5,5 3,7 4c-2 1,-7 2.5,-7 4h-4c0 -3,4 -3,4 -4s-4 -1,-4 -4"/>
+            </svg>
+            <svg class="stop" viewBox="0 0 4 1">
+              <path d="M4 1H0C3 1 3.2 0.8 4 0Z"/>
+            </svg>
 
-          <div class="scroll-container">
-            <div class="scrollOuter" data-list="brands"><div class="scroll" id="brands"></div></div>
-            <div class="scrollOuter" data-list="models"><div class="scroll" id="phones"></div></div>
+            <div class="scroll-container">
+              <div class="scrollOuter" data-list="brands"><div class="scroll" id="brands"></div></div>
+              <div class="scrollOuter" data-list="models"><div class="scroll" id="phones"></div></div>
+            </div>
+          </div>
+
+          <div class="extra-panel" style="display: none;">
+            <span>TODO</span>
           </div>
         </div>
       </div>
@@ -1953,6 +1960,7 @@ function focusedListClicks() {
         clickedTarget.addEventListener("click", () => {
             let selectedList = clickedTarget.getAttribute("data-list")
             setFocusedList(selectedList);
+            window.hideExtraPanel && window.hideExtraPanel(selectedList);
         });
     });
 
@@ -2117,6 +2125,23 @@ function blurFocus() {
     });
 }
 blurFocus();
+
+// Add extra functions
+function addExtra() {
+    let extraButton = document.querySelector("div.select > div.selector-tabs > .extra");
+    window.showExtraPanel = function () {
+        document.querySelector("div.select > div.selector-panel").style["display"] = "none";
+        document.querySelector("div.select > div.extra-panel").style["display"] = "flex";
+        document.querySelector("div.select").setAttribute("data-selected", "extra");
+    };
+    window.hideExtraPanel = function (selectedList) {
+        document.querySelector("div.select > div.selector-panel").style["display"] = "flex";
+        document.querySelector("div.select > div.extra-panel").style["display"] = "none";
+        document.querySelector("div.select").setAttribute("data-selected", selectedList);
+    };
+    extraButton.addEventListener("click", showExtraPanel);
+}
+addExtra();
 
 // Add accessories to the bottom of the page, if configured
 function addAccessories() {

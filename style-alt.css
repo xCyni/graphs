@@ -284,7 +284,7 @@ section.parts-primary {
     
     background-color: var(--background-color);
     
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 
 section.parts-secondary {
@@ -442,7 +442,7 @@ div.tools {
     max-height: 69px;
     padding: 16px 0;
     
-    overflow-x: scroll;
+    overflow-x: auto;
     
     background-color: var(--background-color);
     border-bottom: 1px solid var(--background-color-contrast);
@@ -925,7 +925,7 @@ div.targets {
     padding: 16px;
     max-height: 68px;
     
-    overflow-x: scroll;
+    overflow-x: auto;
     overflow-y: hidden;
 }
 
@@ -1702,6 +1702,14 @@ div.select {
     flex-direction: column;
 }
 
+div.select > div.selector-panel {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
 input.search {
     position: sticky;
     top: 0;
@@ -1743,7 +1751,6 @@ div.select > div.selector-tabs button {
     
     background-color: var(--background-color);
     border: 1px solid var(--background-color-contrast-more);
-    border-radius: 6px 0 0 6px;
     
     color: var(--accent-color-contrast);
     font-family: var(--font-primary);
@@ -1757,9 +1764,10 @@ div.select > div.selector-tabs button {
 
 div.select > div.selector-tabs button:nth-of-type(1) {
     border-right: none;
+    border-radius: 6px 0px 0px 6px;
 }
 
-div.select > div.selector-tabs button:nth-of-type(2) {
+div.select > div.selector-tabs button:nth-last-of-type(1) {
     border-left: none;
     border-radius: 0 6px 6px 0;
 }
@@ -1769,10 +1777,13 @@ svg.stop {
     display: none;
 }
 
-div.select > div.scroll-container {
+div.select > div.selector-panel > div.scroll-container {
     position: relative;
-    
     flex: auto 1 1;
+}
+
+div.select > div.extra-panel {
+    padding: 16px 16px 0 16px;
 }
 
 div.scrollOuter {
@@ -1840,7 +1851,7 @@ div.scroll {
     height: 100%;
     padding: 16px 0;
     
-    overflow-y: scroll;
+    overflow-y: auto;
     overflow-x: hidden;
 }
 
@@ -1875,6 +1886,13 @@ div.select[data-selected="models"] div.scrollOuter[data-list="brands"]:before {
     opacity: 0.8;
     pointer-events: all;
     cursor: pointer;
+}
+
+div.select[data-selected="extra"] > div.selector-tabs button.extra {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    
+    color: var(--font-color-secondary);
 }
 
 /* List item */
@@ -2173,7 +2191,7 @@ div.tutorial-buttons {
     
     background-color: var(--background-color-graph);
     
-    overflow-x: scroll;
+    overflow-x: auto;
 }
 
 div.tutorial-buttons:after {
@@ -2298,7 +2316,7 @@ div.external-links {
     width: 100%;
     max-height: 69px;
     padding: 16px;
-    overflow-x: scroll;
+    overflow-x: auto;
     overflow-y: hidden;
     
     border-top: 1px solid var(--background-color-contrast-more);
@@ -2679,7 +2697,7 @@ Responsive styles *****/
         
         order: 1;
         height: 100%;
-        overflow-y: scroll;
+        overflow-y: auto;
     }
     
     section.parts-primary:after {
@@ -2988,7 +3006,7 @@ Responsive styles *****/
         width: 36px;
         height: 36px;
 
-        background-color: var(--background-color-contrast-more);
+        background-color: var(--header-menu-icon-color);
         mask: var(--icon-hamburger);
         -webkit-mask: var(--icon-hamburger);
         mask-size: 20px;
@@ -3027,7 +3045,7 @@ Responsive styles *****/
         transform: translateX(-100vw);
         
         overflow-x: hidden;
-        overflow-y: scroll;
+        overflow-y: auto;
     }
 
     ul.header-links li {
@@ -3102,7 +3120,7 @@ Responsive styles *****/
         display: none;
     }
     
-    div.select > div.scroll-container {
+    div.select > div.selector-panel > div.scroll-container {
         display: flex;
         max-height: 100%;
     }

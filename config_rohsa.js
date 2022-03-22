@@ -157,20 +157,8 @@ const linkSets = [
         label: "IEM graph databases",
         links: [
             {
-                name: "Audio Discourse",
-                url: "https://iems.audiodiscourse.com/"
-            },
-            {
-                name: "Bad Guy",
-                url: "https://hbb.squig.link/"
-            },
-            {
                 name: "Banbeucmas",
                 url: "https://banbeu.com/graph/tool/"
-            },
-            {
-                name: "HypetheSonics",
-                url: "https://www.hypethesonics.com/iemdbc/"
             },
             {
                 name: "In-Ear Fidelity",
@@ -181,10 +169,6 @@ const linkSets = [
                 url: "https://precog.squig.link/"
             },
             {
-                name: "Rikudou Goku",
-                url: "https://rg.squig.link/"
-            },
-            {
                 name: "Super* Review",
                 url: "https://squig.link/"
             },
@@ -193,10 +177,6 @@ const linkSets = [
     {
         label: "Headphones",
         links: [
-            {
-                name: "Audio Discourse",
-                url: "https://headphones.audiodiscourse.com/"
-            },
             {
                 name: "In-Ear Fidelity",
                 url: "https://crinacle.com/graphs/headphones/graphtool/"
