@@ -1,7 +1,7 @@
 
 /* Primary color theme */
 :root {
-    --accent-color: hsl(0, 0%, 0%);
+    --accent-color: #C82647;
     --accent-color-contrast: hsl(0, 0%, 55%);
 
     --background-color: hsl(0, 0%, 96%);
@@ -20,8 +20,11 @@
     
     --scrollbar-color: 255,255,255;
     --scrollbar-accent: 0,0,0;
-        
-    --logo-filter: invert(1.0);
+
+    --header-color: #C82647;
+    --header-links-color: hsl(0, 0%, 100%);
+
+    --logo-filter: none;
     --svg-filter: none;
 }
 
@@ -46,6 +49,9 @@ body.dark-mode {
     --scrollbar-color: 0,0,0;
     --scrollbar-accent: 255,255,255;
 
+    --header-color: #C82647;
+    --header-links-color: hsl(0, 0%, 100%);
+
     --logo-filter: none;
-    --svg-filter: invert(1.0);
+    --svg-filter: none;
 }

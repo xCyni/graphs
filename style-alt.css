@@ -307,7 +307,7 @@ header.header {
     box-sizing: border-box;
     flex: 48px 0 0;
     
-    background-color: var(--font-color-primary);
+    background-color: var(--header-color);
 }
 
 div.logo {
@@ -351,7 +351,7 @@ ul.header-links {
     margin: auto;
     padding: 0 16px;
     
-    overflow-x: scroll;
+    overflow-x: hidden;
 }
 
 ul.header-links::-webkit-scrollbar {
@@ -379,7 +379,7 @@ ul.header-links a {
     display: flex;
     align-items: center;
     
-    color: var(--background-color-graph);
+    color: var(--header-links-color);
     font-family: var(--font-primary);
     font-weight: 500;
     font-size: 14px;

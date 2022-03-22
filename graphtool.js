@@ -1362,7 +1362,7 @@ function colorPhones() {
 }
 
 let f_values; // Assumed to be the same for all headphones
-let fr_to_ind = fr => d3.bisect(f_values, fr, 0, f_values.length-1);
+let fr_to_ind = (fr, fv) => d3.bisect(fv, fr, 0, fv.length-1);
 function range_to_slice(xs, fn) {
     let r = xs.map(v => d3.bisectLeft(f_values, x.invert(fn(v))));
     return a => a.slice(Math.max(r[0],0), r[1]+1);
@@ -1374,9 +1374,10 @@ let norm_sel = ( default_normalization.toLowerCase() === "db" ) ? 0:1,
 
 function normalizePhone(p) {
     if (norm_sel) { // fr
-        let i = fr_to_ind(norm_fr);
         let avg = l => 20*Math.log10(d3.mean(l, d=>Math.pow(10,d/20)));
-        p.norm = 60 - avg(validChannels(p).map(l=>l[i][1]));
+        p.norm = 60 - avg(validChannels(p).map(l=> {
+          return l[fr_to_ind(norm_fr,l.map(m => m[0]))][1];
+        }));
     } else { // phon
         p.norm = find_offset(getAvg(p), norm_phon);
     }
@@ -1771,7 +1772,7 @@ let graphInteract = imm => function () {
     if (!cs.length) return;
     let m = d3.mouse(this);
     if (interactInspect) {
-        let ind = fr_to_ind(x.invert(m[0])),
+        let ind = fr_to_ind(x.invert(m[0]), f_values),
             x1 = x(f_values[ind]),
             x0 = ind>0 ? x(f_values[ind-1]) : x1,
             sel= m[0]-x0 < x1-m[0],
@@ -2155,6 +2156,7 @@ function addHeader() {
             linkElem = document.createElement("a");
         
         linkElem.setAttribute("href", link.url);
+        linkElem.setAttribute("target", "_blank");
         linkElem.textContent = link.name;
         linkContainerElem.append(linkElem);
         linksList.append(linkContainerElem);

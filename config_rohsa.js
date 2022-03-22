@@ -1,21 +1,21 @@
 // Configuration options
 const init_phones = ["HTH67"],                      // Optional. Which graphs to display on initial load. Note: Share URLs will override this set
-      DIR = "data/",                                // Directory where graph files are stored
+      DIR = "data_rohsa/",                                // Directory where graph files are stored
       default_channels = ["L","R"],                 // Which channels to display. Avoid javascript errors if loading just one channel per phone
-      default_normalization = "dB",                 // Sets default graph normalization mode. Accepts "dB" or "Hz"
+      default_normalization = "Hz",                 // Sets default graph normalization mode. Accepts "dB" or "Hz"
       default_norm_db = 60,                         // Sets default dB normalization point
       default_norm_hz = 500,                        // Sets default Hz normalization point (500Hz is recommended by IEC)
       max_channel_imbalance = 5,                    // Channel imbalance threshold to show ! in the channel selector
       alt_layout = true,                           // Toggle between classic and alt layouts
       alt_sticky_graph = true,                      // If active graphs overflows the viewport, does the graph scroll with the page or stick to the viewport?
       alt_animated = false,                         // Determines if new graphs are drawn with a 1-second animation, or appear instantly
-      alt_header = false,                           // Display a configurable header at the top of the alt layout
+      alt_header = true,                           // Display a configurable header at the top of the alt layout
       alt_tutorial = false,                         // Display a configurable frequency response guide below the graph
-      site_url = 'graph.html',                      // URL of your graph "homepage"
+      site_url = './',                      // URL of your graph "homepage"
       share_url = true,                             // If true, enables shareable URLs
-      watermark_text = "CrinGraph",                 // Optional. Watermark appears behind graphs
-      watermark_image_url = "cringraph-logo.svg",   // Optional. If image file is in same directory as config, can be just the filename
-      page_title = "CrinGraph",                     // Optional. Appended to the page title if share URLs are enabled
+      watermark_text = "Rohsa Graph Tool (CrinGraph)",                 // Optional. Watermark appears behind graphs
+      watermark_image_url = "data_rohsa/icon_watermark.png",   // Optional. If image file is in same directory as config, can be just the filename
+      page_title = "Rohsa Graph Tool (CrinGraph)",                     // Optional. Appended to the page title if share URLs are enabled
       page_description = "View and compare frequency response graphs for earphones",
       accessories = false,                          // If true, displays specified HTML at the bottom of the page. Configure further below
       externalLinksBar = true,                      // If true, displays row of pill-shaped links at the bottom of the page. Configure further below
@@ -32,9 +32,8 @@ const init_phones = ["HTH67"],                      // Optional. Which graphs to
 
 // Specify which targets to display
 const targets = [
-    { type:"Neutral",    files:["Diffuse Field","Etymotic","Free Field","Innerfidelity ID"] },
-    { type:"Reviewer",   files:["Antdroid","Bad Guy","Banbeucmas","Crinacle","Precogvision","Super Review"] },
-    { type:"Preference", files:["Harman","Rtings","Sonarworks"] }
+    { type:"Reference",    files:["IEF IEM","IEF HP","Free Field","Diffuse Field","Harman IE 2016","Harman IE 2019 v2", "Harman OE 2018"] },
+    { type:"Personal",   files:["Banbeu","Precog","Super Review","Rohsa A","Rohsa B","Rohsa C","Rohsa D" ] }
 ];
 
 
@@ -228,11 +227,11 @@ setupGraphAnalytics();
 
 
 // If alt_header is enabled, these are the items added to the header
-let headerLogoImgUrl = "cringraph-logo.svg",
+let headerLogoImgUrl = "data_rohsa/icon_header.png",
     headerLinks = [
     {
-        name: "Sample",
-        url: "https://sample.com"
+        name: "Workshop",
+        url: "https://rohsa.gitlab.io"
     }
 ];
 

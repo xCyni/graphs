@@ -1,4 +1,29 @@
-# The In-Ear Graphing Library
+# Rohsa Graph Tool (CrinGraph)
+
+My graph tool based on CrinGraph.
+
+Modifications:
+
+- Remove " from "IEF \"Harman\" Target.txt", allow windows to checkout this repository
+- Provide universal csv/tsv parser, remove data_format option
+- Do not invert header and watermark in dark mode
+- Open header links on new tab
+- Fix Hz normalization for different resolution files
+- Change default options in config.js
+    - alt_layout: true
+    - stickyLabels: true
+
+How to use this repository for your own project:
+
+- Remove data_rohsa
+- Remove config_rohsa.js
+- Remove index.html
+- Modify config.js
+- Modify graph.html and rename it to index.html if necessary
+
+------------------------------------------------------------------
+
+## The In-Ear Graphing Library
 
 If you're not weirdly obsessed with headphones you can leave at any time.
 
