@@ -135,7 +135,7 @@ doc.html(`
               <button class="upload-target">Upload Target</button>
               <br />
               <span><small>Uploaded data will not be persistent</small></span>
-              <form style="display:none"><input type="file" id="file-fr" /></form>
+              <form style="display:none"><input type="file" id="file-fr" accept=".csv,.txt" /></form>
             </div>
             <div class="extra-eq">
             </div>
@@ -2202,6 +2202,10 @@ function addExtra() {
             let name = file.name.replace(/\.[^\.]+$/, "");
             let phone = { name: name };
             let ch = [tsvParse(e.target.result)];
+            if (ch[0].length < 128) {
+                alert("Error: Invalid frequence response file.");
+                return;
+            }
             if (!f_values) {
                 f_values = ch[0].map(d=>d[0]);
             }
