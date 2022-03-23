@@ -9,6 +9,10 @@ Modifications:
 - Do not invert header and watermark in dark mode
 - Open header links on new tab
 - Fix Hz normalization for different resolution files
+- Fix label display for show/hide graphs
+- Add extra features
+    - Allow uploading frequence response file
+    - Allow uploading target file
 - Change default options in config.js
     - alt_layout: true
     - stickyLabels: true

@@ -834,7 +834,8 @@ div.miscTools {
     padding: 0 16px;
 }
 
-div.miscTools button {
+div.miscTools button,
+div.extra-panel button {
     order: 1;
     
     padding: 11px 16px;
@@ -911,7 +912,11 @@ div.miscTools button#theme:active {
     color: var(--font-color-secondary);
 }
 
+/** extra panel **/
 
+div.extra-panel span {
+    color: var(--background-color-contrast-more);
+}
 
 /*****
 Targets styles *****/

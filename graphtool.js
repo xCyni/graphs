@@ -130,7 +130,15 @@ doc.html(`
           </div>
 
           <div class="extra-panel" style="display: none;">
-            <span>TODO</span>
+            <div class="extra-upload">
+              <button class="upload-fr">Upload FR</button>
+              <button class="upload-target">Upload Target</button>
+              <br />
+              <span><small>Uploaded data will not be persistent</small></span>
+              <form style="display:none"><input type="file" id="file-fr" /></form>
+            </div>
+            <div class="extra-eq">
+            </div>
           </div>
         </div>
       </div>
@@ -1102,10 +1110,13 @@ function updatePhoneTable() {
         t.select(".keyLine").on("click", h?null:toggleHide)
             .selectAll("path,.imbalance").attr("opacity", h?null:0.5);
         t.select(".hideIcon").classed("selected", !h);
-        clearLabels();
         gpath.selectAll("path").filter(c=>c.p===p)
             .attr("opacity", h?null:0);
         p.hide = !h;
+        if (labelsShown) {
+            clearLabels();
+            drawLabels();
+        }
     }
     td().attr("class","button hideIcon")
         .html("<svg viewBox='-2.5 0 19 12'><use xlink:href='#hide-icon'></use></svg>")
@@ -1501,6 +1512,7 @@ function removeCopies(p) {
     }
     removePhone(p);
 }
+
 function removePhone(p) {
     p.active = p.pin = false; nextPN = null;
     activePhones = activePhones.filter(q => q.active);
@@ -1518,9 +1530,59 @@ function removePhone(p) {
         .call(setPhoneTr);
 }
 
+function asPhoneObj(b, p, isInit, inits) {
+    if (!isInit) {
+        isInit = _ => false;
+    }
+    let r = { brand:b, dispBrand:b.name };
+    if (typeof p === "string") {
+        r.phone = r.fileName = p;
+        if (isInit(p)) inits.push(r);
+    } else {
+        r.phone = p.name;
+        if (p.collab) {
+            r.dispBrand += " x "+p.collab;
+            r.collab = brandMap[p.collab];
+        }
+        let f = p.file || p.name;
+        if (typeof f === "string") {
+            r.fileName = f;
+            if (isInit(f)) inits.push(r);
+        } else {
+            r.fileNames = f;
+            r.vars = {};
+            let dns = f;
+            if (p.suffix) {
+                dns = p.suffix.map(
+                    s => p.name + (s ? " "+s : "")
+                );
+            } else if (p.prefix) {
+                let reg = new RegExp("^"+p.prefix+"\s*", "i");
+                dns = f.map(n => {
+                    n = n.replace(reg, "");
+                    return p.name + (n.length ? " "+n : n);
+                });
+            }
+            r.dispNames = dns;
+            r.fileName = f[0];
+            r.dispName = dns[0];
+            let c = r;
+            f.map((fn,i) => {
+                if (!isInit(fn)) return;
+                c.fileName=fn; c.dispName=dns[i];
+                inits.push(c);
+                c = {copyOf:r};
+            });
+        }
+    }
+    r.dispName = r.dispName || r.phone;
+    r.fullName = r.dispBrand + " " + r.phone;
+    return r;
+}
+
 d3.json(typeof PHONE_BOOK !== "undefined" ? PHONE_BOOK
             : DIR+"phone_book.json?"+ new Date().getTime()).then(function (brands) {
-    let brandMap = {},
+    let brandMap = window.brandMap = {},
         inits = [],
         initReq = typeof init_phones !== "undefined" ? init_phones : false;
     loadFromShare = 0;
@@ -1548,59 +1610,17 @@ d3.json(typeof PHONE_BOOK !== "undefined" ? PHONE_BOOK
     } else {
         initMode = "config";
     }
-    
+
+    brands.push({ name: "Uploaded", phones: [] });
     brands.forEach(b => brandMap[b.name] = b);
     brands.forEach(function (b) {
         b.active = false;
         b.phoneObjs = b.phones.map(function (p) {
-            let r = { brand:b, dispBrand:b.name };
-            if (typeof p === "string") {
-                r.phone = r.fileName = p;
-                if (isInit(p)) inits.push(r);
-            } else {
-                r.phone = p.name;
-                if (p.collab) {
-                    r.dispBrand += " x "+p.collab;
-                    r.collab = brandMap[p.collab];
-                }
-                let f = p.file || p.name;
-                if (typeof f === "string") {
-                    r.fileName = f;
-                    if (isInit(f)) inits.push(r);
-                } else {
-                    r.fileNames = f;
-                    r.vars = {};
-                    let dns = f;
-                    if (p.suffix) {
-                        dns = p.suffix.map(
-                            s => p.name + (s ? " "+s : "")
-                        );
-                    } else if (p.prefix) {
-                        let reg = new RegExp("^"+p.prefix+"\s*", "i");
-                        dns = f.map(n => {
-                            n = n.replace(reg, "");
-                            return p.name + (n.length ? " "+n : n);
-                        });
-                    }
-                    r.dispNames = dns;
-                    r.fileName = f[0];
-                    r.dispName = dns[0];
-                    let c = r;
-                    f.map((fn,i) => {
-                        if (!isInit(fn)) return;
-                        c.fileName=fn; c.dispName=dns[i];
-                        inits.push(c);
-                        c = {copyOf:r};
-                    });
-                }
-            }
-            r.dispName = r.dispName || r.phone;
-            r.fullName = r.dispBrand + " " + r.phone;
-            return r;
+            return asPhoneObj(b, p, isInit, inits);
         });
     });
 
-    let allPhones = d3.merge(brands.map(b=>b.phoneObjs)),
+    let allPhones = window.allPhones = d3.merge(brands.map(b=>b.phoneObjs)),
         currentBrands = [];
     if (!initReq) inits.push(allPhones[0]);
 
@@ -1619,25 +1639,30 @@ d3.json(typeof PHONE_BOOK !== "undefined" ? PHONE_BOOK
         d3.select(this).style("background", fn(p));
         (p.objs||[p]).forEach(q=>hl(q,h));
     }
-    let phoneSel = doc.select("#phones").selectAll()
-        .data(allPhones).join("div")
-        .attr("class","phone-item")
-        .on("mouseover", bg(true, p => getDivColor(p.id===undefined?nextPhoneNumber():p.id, true)))
-        .on("mouseout" , bg(false,p => p.id!==undefined?getDivColor(p.id,p.active):null))
-        .call(setClicks(showPhone));
-    phoneSel.append("span").text(p=>p.fullName);
-
-    // Adding the + selection button
-    phoneSel.append("div")
-            .attr("class", "phone-item-add")
-            .on("click", p => {
-                d3.event.stopPropagation();
-                showPhone(p, 0);
-            })
-
+    window.updatePhoneSelect = () => {
+        doc.select("#phones").selectAll("div.phone-item")
+            .data(allPhones)
+            .join((enter) => {
+                let phoneDiv = enter.append("div")
+                    .attr("class","phone-item")
+                    .attr("name", p=>p.fullName)
+                    .on("mouseover", bg(true, p => getDivColor(p.id===undefined?nextPhoneNumber():p.id, true)))
+                    .on("mouseout" , bg(false,p => p.id!==undefined?getDivColor(p.id,p.active):null))
+                    .call(setClicks(showPhone));
+                phoneDiv.append("span").text(p=>p.fullName);
+                // Adding the + selection button
+                phoneDiv.append("div")
+                    .attr("class", "phone-item-add")
+                    .on("click", p => {
+                        d3.event.stopPropagation();
+                        showPhone(p, 0);
+                    });
+           });
+    };
+    updatePhoneSelect();
 
     if (targets) {
-        let b = { name:"Targets", active:false },
+        let b = window.brandTarget = { name:"Targets", active:false },
             ti = -targets.length,
             ph = t => ({
                 isTarget:true, brand:b,
@@ -1663,6 +1688,7 @@ d3.json(typeof PHONE_BOOK !== "undefined" ? PHONE_BOOK
                             : showPhone(p,0,1, initMode));
 
     function setBrand(b, exclusive) {
+        let phoneSel = doc.select("#phones").selectAll("div.phone-item");
         let incl = currentBrands.indexOf(b) !== -1;
         let hasBrand = (p,b) => p.brand===b || p.collab===b;
         if (exclusive || currentBrands.length===0) {
@@ -1731,6 +1757,7 @@ d3.json(typeof PHONE_BOOK !== "undefined" ? PHONE_BOOK
         } else {
             fn = c.length ? test : (p=>true);
         }
+        let phoneSel = doc.select("#phones").selectAll("div.phone-item");
         phoneSel.style("display", p => fn(p)?null:"none");
         brandSel.style("display", b => bl.indexOf(b)!==-1?null:"none");
     });
@@ -2126,20 +2153,95 @@ function blurFocus() {
 }
 blurFocus();
 
-// Add extra functions
+// Add extra feature
 function addExtra() {
-    let extraButton = document.querySelector("div.select > div.selector-tabs > .extra");
-    window.showExtraPanel = function () {
+    let extraButton = document.querySelector("div.select > div.selector-tabs > button.extra");
+    // Disable functions by config
+    if (!enableExtra) {
+        extraButton.remove();
+        return;
+    }
+    if (!enableExtraUpload) {
+        document.querySelector("div.extra-panel > div.extra-upload").style["display"] = "none";
+    }
+    if (!enableExtraEQ) {
+        document.querySelector("div.extra-panel > div.extra-eq").style["display"] = "none";
+    }
+    // Show and hide extra panel
+    window.showExtraPanel = () => {
         document.querySelector("div.select > div.selector-panel").style["display"] = "none";
         document.querySelector("div.select > div.extra-panel").style["display"] = "flex";
         document.querySelector("div.select").setAttribute("data-selected", "extra");
     };
-    window.hideExtraPanel = function (selectedList) {
+    window.hideExtraPanel = (selectedList) => {
         document.querySelector("div.select > div.selector-panel").style["display"] = "flex";
         document.querySelector("div.select > div.extra-panel").style["display"] = "none";
         document.querySelector("div.select").setAttribute("data-selected", selectedList);
     };
     extraButton.addEventListener("click", showExtraPanel);
+    // Upload function
+    let uploadFRButton = document.querySelector("div.extra-upload > button.upload-fr");
+    let uploadTargetButton = document.querySelector("div.extra-upload > button.upload-target");
+    let uploadType = null;
+    let fileFR = document.querySelector("#file-fr");
+    uploadFRButton.addEventListener("click", () => {
+        uploadType = "fr";
+        fileFR.click();
+    });
+    uploadTargetButton.addEventListener("click", () => {
+        uploadType = "target";
+        fileFR.click();
+    });
+    fileFR.addEventListener("change", (e) => {
+        let file = e.target.files[0];
+        if (!file) {
+            return;
+        }
+        let reader = new FileReader();
+        reader.onload = (e) => {
+            let name = file.name.replace(/\.[^\.]+$/, "");
+            let phone = { name: name };
+            let ch = [tsvParse(e.target.result)];
+            if (!f_values) {
+                f_values = ch[0].map(d=>d[0]);
+            }
+            if (uploadType === "fr") {
+                name.match(/ R$/) && ch.splice(0, 0, null);
+                let phoneObjs = brandMap.Uploaded.phoneObjs;
+                let phoneObj = phoneObjs.filter(p => p.phone == phone.name)[0]
+                if (phoneObj) {
+                    // Replace previous upload
+                    phoneObj.active && removePhone(phoneObj);
+                    phoneObjs.splice(phoneObjs.indexOf(phoneObj), 1);
+                    allPhones.splice(allPhones.indexOf(phoneObj), 1);
+                } else {
+                    brandMap.Uploaded.phones.push(phone);
+                }
+                phoneObj = asPhoneObj(brandMap.Uploaded, phone);
+                phoneObj.rawChannels = ch;
+                brandMap.Uploaded.phoneObjs.push(phoneObj);
+                allPhones.push(phoneObj);
+                updatePhoneSelect();
+                showPhone(phoneObj, false);
+            } else if (uploadType === "target") {
+                let fullName = name + (name.match(/ Target$/i) ? "" : " Target");
+                let phoneObj = {
+                    isTarget: true,
+                    brand: brandTarget,
+                    dispName: name,
+                    phone: name,
+                    fullName: fullName,
+                    fileName: fullName,
+                    rawChannels: ch,
+                    id: -brandTarget.phoneObjs.length
+                };
+                showPhone(phoneObj, true);
+            }
+        };
+        reader.readAsText(file);
+    });
+    // EQ Function
+    // TODO
 }
 addExtra();
 
