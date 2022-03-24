@@ -103,11 +103,13 @@ Equlizer = (function() {
             freqs[i] = fr[i][0];
         }
         let coeffs = filters.map(f => {
-            if (f.type == "LS") {
+            if (!f.freq || !f.gain || !f.q) {
+                return null;
+            } else if (f.type === "LS") {
                 return lowshelf(f.freq, f.q, f.gain, sampleRate);
-            } else if (f.type == "HS") {
+            } else if (f.type === "HS") {
                 return highshelf(f.freq, f.q, f.gain, sampleRate);
-            } else if (f.type == "PK") {
+            } else if (f.type === "PK") {
                 return peaking(f.freq, f.q, f.gain, sampleRate);
             }
             return null;

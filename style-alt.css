@@ -914,8 +914,45 @@ div.miscTools button#theme:active {
 
 /** extra panel **/
 
+div.extra-panel {
+    flex-direction: column;
+    overflow: auto;
+}
+
+div.extra-panel > div {
+    margin: 0 0 1em 0;
+}
+
+div.extra-panel h5 {
+    margin: 0 0 1em 0;
+    color: var(--accent-color-contrast);
+}
+
 div.extra-panel span {
     color: var(--background-color-contrast-more);
+}
+
+div.extra-panel > div.extra-eq > div.select-eq-phone {
+    margin: 0 0 1em 0;
+}
+
+div.extra-panel > div.extra-eq > div.select-eq-phone > select {
+    width: 99%;
+}
+
+div.extra-panel > div.extra-eq > div.filters-header > span {
+    width: 24%;
+    display: inline-block;
+}
+
+div.extra-panel > div.extra-eq > div.filters > div.filter > select,
+div.extra-panel > div.extra-eq > div.filters > div.filter > span {
+    width: 24%;
+    display: inline-block;
+}
+
+div.extra-panel > div.extra-eq > div.filters > div.filter > span > input {
+    width: 90%;
 }
 
 /*****

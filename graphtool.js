@@ -131,6 +131,7 @@ doc.html(`
 
           <div class="extra-panel" style="display: none;">
             <div class="extra-upload">
+              <h5>Uploading</h2>
               <button class="upload-fr">Upload FR</button>
               <button class="upload-target">Upload Target</button>
               <br />
@@ -138,6 +139,30 @@ doc.html(`
               <form style="display:none"><input type="file" id="file-fr" accept=".csv,.txt" /></form>
             </div>
             <div class="extra-eq">
+              <h5>Parametic Equalizer</h2>
+              <div class="select-eq-phone">
+                <select name="phone">
+                    <option value="" selected>Choose EQ model</option>
+                </select>
+              </div>
+              <div class="filters-header">
+                <span>Type</span>
+                <span>Frequency</span>
+                <span>Q</span>
+                <span>Gain</span>
+              </div>
+              <div class="filters">
+                <div class="filter">
+                    <select name="type">
+                        <option value="PK" selected>PK</option>
+                        <option value="LS">LS</option>
+                        <option value="HS">HS</option>
+                    </select>
+                    <span><input name="freq" type="number" min="20" max="20000" step="1" value="0"></input></span>
+                    <span><input name="q" type="number" min="0" max="10" step="0.1" value="0"></input></span>
+                    <span><input name="gain" type="number" min="-40" max="40" step="0.1" value="0"></input></span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1503,6 +1528,9 @@ function showPhone(p, exclusive, suppressVariant, trigger) {
     } else {
         document.activeElement.blur();
     }
+    if (enableExtra && enableExtraEQ) {
+        updateEQPhoneSelect();
+    }
 }
 
 function removeCopies(p) {
@@ -1528,6 +1556,9 @@ function removePhone(p) {
     d3.selectAll("#phones div,.target")
         .filter(q=>q===(p.copyOf||p))
         .call(setPhoneTr);
+    if (enableExtra && enableExtraEQ) {
+        updateEQPhoneSelect();
+    }
 }
 
 function asPhoneObj(b, p, isInit, inits) {
@@ -2245,7 +2276,45 @@ function addExtra() {
         reader.readAsText(file);
     });
     // EQ Function
-    // TODO
+    let eqPhoneSelect = document.querySelector("div.extra-eq select[name='phone']");
+    let filtersContainer = document.querySelector("div.extra-eq > div.filters");
+    let filterElem = document.querySelector("div.extra-eq > div.filters > div.filter");
+    while (filtersContainer.childElementCount < 12) {
+        filtersContainer.appendChild(filterElem.cloneNode(true));
+    }
+    let filterTypeSelect = document.querySelectorAll(
+        "div.extra-eq > div.filters > div.filter select[name='type']");
+    let filterFreqInput = document.querySelectorAll(
+        "div.extra-eq > div.filters > div.filter input[name='freq']");
+    let filterQInput = document.querySelectorAll(
+        "div.extra-eq > div.filters > div.filter input[name='q']");
+    let filterGainInput = document.querySelectorAll(
+        "div.extra-eq > div.filters > div.filter input[name='gain']");
+    let applyEQHandle = null;
+    let applyEQExec = () => {
+        console.log("applyEQ");
+    };
+    let applyEQ = () => {
+        clearTimeout(applyEQHandle);
+        applyEQHandle = setTimeout(applyEQExec, 1000);
+    };
+    window.updateEQPhoneSelect = () => {
+        let oldValue = eqPhoneSelect.value;
+        let optionValues = activePhones.filter(p => !p.isTarget).map(p => p.fullName);
+        Array.from(eqPhoneSelect.children).slice(1).forEach(c => eqPhoneSelect.removeChild(c));
+        optionValues.forEach(value => {
+            let optionElem = document.createElement("option");
+            optionElem.setAttribute("value", value);
+            optionElem.innerText = value;
+            eqPhoneSelect.appendChild(optionElem);
+        });
+        eqPhoneSelect.value = (optionValues.indexOf(oldValue) >= 0) ? oldValue : "";
+    };
+    eqPhoneSelect.addEventListener("input", applyEQ);
+    filterTypeSelect.forEach(el => el.addEventListener("input", applyEQ));
+    filterFreqInput.forEach(el => el.addEventListener("input", applyEQ));
+    filterQInput.forEach(el => el.addEventListener("input", applyEQ));
+    filterGainInput.forEach(el => el.addEventListener("input", applyEQ));
 }
 addExtra();
 
