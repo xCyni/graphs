@@ -97,6 +97,18 @@ Equalizer = (function() {
         return gains;
     };
 
+    let calc_preamp = function (fr1, fr2) {
+        let max1 = -Infinity;
+        let max2 = -Infinity;
+        for (let i = 0; i < fr1.length; ++i) {
+            max1 = Math.max(max1, fr1[i][1]);
+        }
+        for (let i = 0; i < fr2.length; ++i) {
+            max2 = Math.max(max2, fr2[i][1]);
+        }
+        return max1 - max2;
+    };
+
     let apply = function (fr, filters, sampleRate) {
         let freqs = new Array(fr.length).fill(null);
         for (let i = 0; i < fr.length; ++i) {
@@ -105,9 +117,9 @@ Equalizer = (function() {
         let coeffs = filters.map(f => {
             if (!f.freq || !f.gain || !f.q) {
                 return null;
-            } else if (f.type === "LS") {
+            } else if (f.type === "LSQ") {
                 return lowshelf(f.freq, f.q, f.gain, sampleRate);
-            } else if (f.type === "HS") {
+            } else if (f.type === "HSQ") {
                 return highshelf(f.freq, f.q, f.gain, sampleRate);
             } else if (f.type === "PK") {
                 return peaking(f.freq, f.q, f.gain, sampleRate);
@@ -128,6 +140,7 @@ Equalizer = (function() {
         highshelf,
         peaking,
         calc_gains,
+        calc_preamp,
         apply
     }
 })();

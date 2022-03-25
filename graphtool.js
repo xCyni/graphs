@@ -155,8 +155,8 @@ doc.html(`
                 <div class="filter">
                     <select name="type">
                         <option value="PK" selected>PK</option>
-                        <option value="LS">LS</option>
-                        <option value="HS">HS</option>
+                        <option value="LSQ">LSQ</option>
+                        <option value="HSQ">HSQ</option>
                         <option value="">Disable</option>
                     </select>
                     <span><input name="freq" type="number" min="20" max="20000" step="1" value="0"></input></span>
@@ -170,6 +170,8 @@ doc.html(`
                 <button class="export-filters">Export</button>
                 <button class="autoeq">Auto EQ</button>
               </div>
+              <a style="display: none" id="file-filters-export"></a>
+              <form style="display:none"><input type="file" id="file-filters-import" accept=".txt" /></form>
             </div>
           </div>
         </div>
@@ -2237,15 +2239,13 @@ function addExtra() {
     };
     extraButton.addEventListener("click", showExtraPanel);
     // Upload function
-    let uploadFRButton = document.querySelector("div.extra-upload > button.upload-fr");
-    let uploadTargetButton = document.querySelector("div.extra-upload > button.upload-target");
     let uploadType = null;
     let fileFR = document.querySelector("#file-fr");
-    uploadFRButton.addEventListener("click", () => {
+    document.querySelector("div.extra-upload > button.upload-fr").addEventListener("click", () => {
         uploadType = "fr";
         fileFR.click();
     });
-    uploadTargetButton.addEventListener("click", () => {
+    document.querySelector("div.extra-upload > button.upload-target").addEventListener("click", () => {
         uploadType = "target";
         fileFR.click();
     });
@@ -2322,6 +2322,7 @@ function addExtra() {
         "div.extra-eq > div.filters > div.filter input[name='q']");
     let filterGainInput = document.querySelectorAll(
         "div.extra-eq > div.filters > div.filter input[name='gain']");
+    let fileFiltersImport = document.querySelector("#file-filters-import");
     let elemToFilters = (includeAll) => {
         // Collect filters from ui
         let filters = [];
@@ -2343,7 +2344,7 @@ function addExtra() {
         while (filtersCopy.length < filterTypeSelect.length) {
             filtersCopy.push({ type: "PK", freq: 0, q: 0, gain: 0 });
         }
-        filters.forEach((f, i) => {
+        filters.slice(0, filterTypeSelect.length).forEach((f, i) => {
             filterTypeSelect[i].value = f.type;
             filterFreqInput[i].value = f.freq;
             filterQInput[i].value = f.q;
@@ -2352,6 +2353,7 @@ function addExtra() {
     };
     let applyEQHandle = null;
     let applyEQExec = () => {
+        // Create and show phone with eq applied
         let activeElem = document.activeElement;
         let phoneSelected = eqPhoneSelect.value;
         let filters = elemToFilters();
@@ -2365,6 +2367,7 @@ function addExtra() {
         let phoneEQ = { name: phoneObj.phone + " EQ" };
         let phoneObjEQ = addOrUpdatePhone(phoneObj.brand, phoneEQ,
             phoneObj.rawChannels.map(c => c ? Equalizer.apply(c, filters) : null));
+        phoneObj.eq = phoneObjEQ;
         showPhone(phoneObjEQ, false);
         activeElem.focus();
     };
@@ -2395,13 +2398,72 @@ function addExtra() {
             (a.freq || Infinity) - (b.freq || Infinity)));
     });
     document.querySelector("div.extra-eq button.import-filters").addEventListener("click", () => {
-        alert("TODO: Not implemented")
+        // Import filters
+        fileFiltersImport.click();
+    });
+    fileFiltersImport.addEventListener("change", (e) => {
+        // Import filters callback
+        let file = e.target.files[0];
+        if (!file) {
+            return;
+        }
+        let reader = new FileReader();
+        reader.onload = (e) => {
+            let settings = e.target.result;
+            let filters = settings.split("\n").map(l => {
+                let r = l.match(/Filter \d+: (\S+) (\S+) Fc (\S+) Hz Gain (\S+) dB( Q (\S+))?/);
+                if (!r) { return undefined; }
+                let type = (r[1] === "ON") ? r[2] : "";
+                let freq = parseInt(r[3]) || 0;
+                let gain = parseFloat(r[4]) || 0;
+                let q = parseFloat(r[6]) || 0;
+                if (type === "LS" || type === "HS") {
+                    type += "Q";
+                    q = 0.707;
+                }
+                if (!type && !freq && !gain && !q) {
+                    type = "PK";
+                }
+                return { type, freq, q, gain };
+            }).filter(f => f);
+            filtersToElem(filters);
+            applyEQ();
+        };
+        reader.readAsText(file);
     });
     document.querySelector("div.extra-eq button.export-filters").addEventListener("click", () => {
-        alert("TODO: Not implemented")
+        // Export filters
+        let phoneSelected = eqPhoneSelect.value;
+        let filters = elemToFilters(true);
+        if (!phoneSelected || !filters.length) {
+            alert("Error: Model not selected or no filters.");
+            return;
+        }
+        let phoneObj = activePhones.filter(p => p.fullName == phoneSelected && p.eq)[0];
+        if (!phoneObj) {
+            alert("Error: EQ not applied.");
+            return;
+        }
+        let preamp = Equalizer.calc_preamp(
+            phoneObj.rawChannels.filter(c => c)[0],
+            phoneObj.eq.rawChannels.filter(c => c)[0]);
+        let settings = "Preamp: " + preamp.toFixed(1) + " dB\r\n";
+        filters.forEach((f, i) => {
+            let type = f.type || "PK";
+            let on = (f.type && f.freq && f.gain && f.q) ? "ON" : "OFF";
+            settings += ("Filter " + (i+1) + ": " + on + " " + type + " Fc " +
+                f.freq.toFixed(0) + " Hz Gain " + f.gain.toFixed(1) + " dB Q " +
+                f.q.toFixed(3) + "\r\n");
+        });
+        let exportElem = document.querySelector("#file-filters-export");
+        exportElem.href && URL.revokeObjectURL(exportElem.href);
+        exportElem.href = URL.createObjectURL(new Blob([settings]));
+        exportElem.download = phoneObj.fullName + " Filters.txt";
+        exportElem.click();
     });
     document.querySelector("div.extra-eq button.autoeq").addEventListener("click", () => {
-        alert("TODO: Not implemented")
+        // Generate filters automatically
+        alert("TODO: Not implemented.")
     });
 }
 addExtra();
