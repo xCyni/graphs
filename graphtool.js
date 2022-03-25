@@ -2357,6 +2357,12 @@ function addExtra() {
         let activeElem = document.activeElement;
         let phoneSelected = eqPhoneSelect.value;
         let filters = elemToFilters();
+        if (filters.length && !phoneSelected) {
+            let firstPhone = eqPhoneSelect.querySelectorAll("option")[1];
+            if (firstPhone) {
+                phoneSelected = eqPhoneSelect.value = firstPhone.value;
+            }
+        }
         if (!phoneSelected || !filters.length) {
             return;
         }
@@ -2411,7 +2417,7 @@ function addExtra() {
         reader.onload = (e) => {
             let settings = e.target.result;
             let filters = settings.split("\n").map(l => {
-                let r = l.match(/Filter \d+: (\S+) (\S+) Fc (\S+) Hz Gain (\S+) dB( Q (\S+))?/);
+                let r = l.match(/Filter\s*\d+:\s*(\S+)\s*(\S+)\s*Fc\s*(\S+)\s*Hz\s*Gain\s*(\S+)\s*dB(\s*Q\s*(\S+))?/);
                 if (!r) { return undefined; }
                 let type = (r[1] === "ON") ? r[2] : "";
                 let freq = parseInt(r[3]) || 0;
