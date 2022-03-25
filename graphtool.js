@@ -157,11 +157,18 @@ doc.html(`
                         <option value="PK" selected>PK</option>
                         <option value="LS">LS</option>
                         <option value="HS">HS</option>
+                        <option value="">Disable</option>
                     </select>
                     <span><input name="freq" type="number" min="20" max="20000" step="1" value="0"></input></span>
                     <span><input name="q" type="number" min="0" max="10" step="0.1" value="0"></input></span>
                     <span><input name="gain" type="number" min="-40" max="40" step="0.1" value="0"></input></span>
                 </div>
+              </div>
+              <div class="filters-button">
+                <button class="sort-filters">Sort</button>
+                <button class="import-filters">Import</button>
+                <button class="export-filters">Export</button>
+                <button class="autoeq">Auto EQ</button>
               </div>
             </div>
           </div>
@@ -755,8 +762,7 @@ function loadFiles(p, callback) {
         if (!frs.some(f=>f!==null)) {
             alert("Headphone not found!");
         } else {
-            let ch = frs.map(f => f && tsvParse(f));
-            if (!f_values) { f_values = ch[0].map(d=>d[0]); }
+            let ch = frs.map(f => f && fr_interp(f_values, tsvParse(f)));
             callback(ch);
         }
     });
@@ -942,6 +948,7 @@ function setPhoneTr(phtr) {
     phtr.style("background",p=>p.isTarget&&!p.active?null:getDivColor(p.id,p.highlight))
         .style("border-color",p=>p.highlight?getDivColor(p.id,1):null);
     phtr.filter(p=>!p.isTarget)
+        .select(".phone-item-add")
         .selectAll(".remove").data(p=>p.highlight?[p]:[])
         .join("span").attr("class","remove").text("⊗")
         .on("click", p => { d3.event.stopPropagation(); removeCopies(p); });
@@ -1404,8 +1411,29 @@ function colorPhones() {
     t.append("svg").call(addKey);
 }
 
-let f_values; // Assumed to be the same for all headphones
-let fr_to_ind = (fr, fv) => d3.bisect(fv, fr, 0, fv.length-1);
+function fr_interp(fv, fr) {
+    let i = 0;
+    return fv.map(f => {
+        for (; i < fr.length-1; ++i) {
+            let [f0, v0] = fr[i];
+            let [f1, v1] = fr[i+1];
+            if (f >= f0 && f < f1) {
+                let v = v0 + (v1 - v0) * (f - f0) / (f1 - f0);
+                return [f, v];
+            }
+        }
+        return [f, fr[fr.length-1][1]];
+    });
+}
+
+let f_values = (function() {
+    // Standard frequencies, all phone need to interpolate to this
+    let f = [20];
+    let step = Math.pow(2, 1/48); // 1/48 octave
+    while (f[f.length-1] < 20000) { f.push(f[f.length-1] * step) }
+    return f;
+})();
+let fr_to_ind = fr => d3.bisect(f_values, fr, 0, f_values.length-1);
 function range_to_slice(xs, fn) {
     let r = xs.map(v => d3.bisectLeft(f_values, x.invert(fn(v))));
     return a => a.slice(Math.max(r[0],0), r[1]+1);
@@ -1418,9 +1446,7 @@ let norm_sel = ( default_normalization.toLowerCase() === "db" ) ? 0:1,
 function normalizePhone(p) {
     if (norm_sel) { // fr
         let avg = l => 20*Math.log10(d3.mean(l, d=>Math.pow(10,d/20)));
-        p.norm = 60 - avg(validChannels(p).map(l=> {
-          return l[fr_to_ind(norm_fr,l.map(m => m[0]))][1];
-        }));
+        p.norm = 60 - avg(validChannels(p).map(l=> l[fr_to_ind(norm_fr)][1]));
     } else { // phon
         p.norm = find_offset(getAvg(p), norm_phon);
     }
@@ -1519,7 +1545,7 @@ function showPhone(p, exclusive, suppressVariant, trigger) {
     }
     updatePaths(trigger);
     updatePhoneTable();
-    d3.selectAll("#phones div,.target")
+    d3.selectAll("#phones .phone-item,.target")
         .filter(p=>p.id!==undefined)
         .call(setPhoneTr);
     //Displays variant pop-up when phone displayed
@@ -1703,7 +1729,7 @@ d3.json(typeof PHONE_BOOK !== "undefined" ? PHONE_BOOK
             .attr("class", "targets collapseTools");
         let l = (text,c) => s => s.append("div").attr("class","targetLabel").append("span").text(text);
         let ts = b.phoneObjs = doc.select(".targets").call(l("Targets"))
-            .selectAll().data(targets).join().call(l(t=>t.type))
+            .selectAll().data(targets).join("div").call(l(t=>t.type))
             .style("flex-grow",t=>t.files.length).attr("class","targetClass")
             .selectAll().data(t=>t.files.map(ph))
             .join("div").text(t=>t.dispName).attr("class","target")
@@ -1837,7 +1863,7 @@ let graphInteract = imm => function () {
     if (!cs.length) return;
     let m = d3.mouse(this);
     if (interactInspect) {
-        let ind = fr_to_ind(x.invert(m[0]), f_values),
+        let ind = fr_to_ind(x.invert(m[0])),
             x1 = x(f_values[ind]),
             x0 = ind>0 ? x(f_values[ind-1]) : x1,
             sel= m[0]-x0 < x1-m[0],
@@ -2223,6 +2249,28 @@ function addExtra() {
         uploadType = "target";
         fileFR.click();
     });
+    let addOrUpdatePhone = (brand, phone, ch) => {
+        let phoneObjs = brand.phoneObjs;
+        let phoneObj = phoneObjs.filter(p => p.phone == phone.name)[0]
+        let oldPhoneId = undefined;
+        if (phoneObj) {
+            oldPhoneId = phoneObj.id;
+            phoneObj.active && removePhone(phoneObj);
+            phoneObjs.splice(phoneObjs.indexOf(phoneObj), 1);
+            allPhones.splice(allPhones.indexOf(phoneObj), 1);
+        } else {
+            brand.phones.push(phone);
+        }
+        phoneObj = asPhoneObj(brand, phone);
+        phoneObj.rawChannels = ch;
+        if (oldPhoneId !== undefined) {
+            phoneObj.id = oldPhoneId;
+        }
+        phoneObjs.push(phoneObj);
+        allPhones.push(phoneObj);
+        updatePhoneSelect();
+        return phoneObj;
+    };
     fileFR.addEventListener("change", (e) => {
         let file = e.target.files[0];
         if (!file) {
@@ -2237,26 +2285,10 @@ function addExtra() {
                 alert("Error: Invalid frequence response file.");
                 return;
             }
-            if (!f_values) {
-                f_values = ch[0].map(d=>d[0]);
-            }
+            ch[0] = fr_interp(f_values, ch[0]);
             if (uploadType === "fr") {
                 name.match(/ R$/) && ch.splice(0, 0, null);
-                let phoneObjs = brandMap.Uploaded.phoneObjs;
-                let phoneObj = phoneObjs.filter(p => p.phone == phone.name)[0]
-                if (phoneObj) {
-                    // Replace previous upload
-                    phoneObj.active && removePhone(phoneObj);
-                    phoneObjs.splice(phoneObjs.indexOf(phoneObj), 1);
-                    allPhones.splice(allPhones.indexOf(phoneObj), 1);
-                } else {
-                    brandMap.Uploaded.phones.push(phone);
-                }
-                phoneObj = asPhoneObj(brandMap.Uploaded, phone);
-                phoneObj.rawChannels = ch;
-                brandMap.Uploaded.phoneObjs.push(phoneObj);
-                allPhones.push(phoneObj);
-                updatePhoneSelect();
+                let phoneObj = addOrUpdatePhone(brandMap.Uploaded, phone, ch);
                 showPhone(phoneObj, false);
             } else if (uploadType === "target") {
                 let fullName = name + (name.match(/ Target$/i) ? "" : " Target");
@@ -2290,17 +2322,60 @@ function addExtra() {
         "div.extra-eq > div.filters > div.filter input[name='q']");
     let filterGainInput = document.querySelectorAll(
         "div.extra-eq > div.filters > div.filter input[name='gain']");
+    let elemToFilters = (includeAll) => {
+        // Collect filters from ui
+        let filters = [];
+        for (let i = 0; i < filterTypeSelect.length; ++i) {
+            let type = filterTypeSelect[i].value;
+            let freq = parseInt(filterFreqInput[i].value) || 0;
+            let q = parseFloat(filterQInput[i].value) || 0;
+            let gain = parseFloat(filterGainInput[i].value) || 0;
+            if (!includeAll && (!type || !freq || !q || !gain)) {
+                continue;
+            }
+            filters.push({ type, freq, q, gain });
+        }
+        return filters;
+    };
+    let filtersToElem = (filters) => {
+        // Set filters to ui
+        let filtersCopy = filters.map(f => f);
+        while (filtersCopy.length < filterTypeSelect.length) {
+            filtersCopy.push({ type: "PK", freq: 0, q: 0, gain: 0 });
+        }
+        filters.forEach((f, i) => {
+            filterTypeSelect[i].value = f.type;
+            filterFreqInput[i].value = f.freq;
+            filterQInput[i].value = f.q;
+            filterGainInput[i].value = f.gain;
+        });
+    };
     let applyEQHandle = null;
     let applyEQExec = () => {
-        console.log("applyEQ");
+        let activeElem = document.activeElement;
+        let phoneSelected = eqPhoneSelect.value;
+        let filters = elemToFilters();
+        if (!phoneSelected || !filters.length) {
+            return;
+        }
+        let phoneObj = activePhones.filter(p => p.fullName == phoneSelected)[0];
+        if (!phoneObj) {
+            return;
+        }
+        let phoneEQ = { name: phoneObj.phone + " EQ" };
+        let phoneObjEQ = addOrUpdatePhone(phoneObj.brand, phoneEQ,
+            phoneObj.rawChannels.map(c => c ? Equalizer.apply(c, filters) : null));
+        showPhone(phoneObjEQ, false);
+        activeElem.focus();
     };
     let applyEQ = () => {
         clearTimeout(applyEQHandle);
-        applyEQHandle = setTimeout(applyEQExec, 1000);
+        applyEQHandle = setTimeout(applyEQExec, 100);
     };
     window.updateEQPhoneSelect = () => {
         let oldValue = eqPhoneSelect.value;
-        let optionValues = activePhones.filter(p => !p.isTarget).map(p => p.fullName);
+        let optionValues = activePhones.filter(p =>
+            !p.isTarget && !p.fullName.match(/ EQ$/)).map(p => p.fullName);
         Array.from(eqPhoneSelect.children).slice(1).forEach(c => eqPhoneSelect.removeChild(c));
         optionValues.forEach(value => {
             let optionElem = document.createElement("option");
@@ -2315,6 +2390,19 @@ function addExtra() {
     filterFreqInput.forEach(el => el.addEventListener("input", applyEQ));
     filterQInput.forEach(el => el.addEventListener("input", applyEQ));
     filterGainInput.forEach(el => el.addEventListener("input", applyEQ));
+    document.querySelector("div.extra-eq button.sort-filters").addEventListener("click", () => {
+        filtersToElem(elemToFilters(true).sort((a, b) =>
+            (a.freq || Infinity) - (b.freq || Infinity)));
+    });
+    document.querySelector("div.extra-eq button.import-filters").addEventListener("click", () => {
+        alert("TODO: Not implemented")
+    });
+    document.querySelector("div.extra-eq button.export-filters").addEventListener("click", () => {
+        alert("TODO: Not implemented")
+    });
+    document.querySelector("div.extra-eq button.autoeq").addEventListener("click", () => {
+        alert("TODO: Not implemented")
+    });
 }
 addExtra();
 

@@ -932,8 +932,9 @@ div.extra-panel span {
     color: var(--background-color-contrast-more);
 }
 
-div.extra-panel > div.extra-eq > div.select-eq-phone {
-    margin: 0 0 1em 0;
+div.extra-panel > div.extra-eq > div.select-eq-phone,
+div.extra-panel > div.extra-eq > div.filters {
+    margin: 0 0 0.5em 0;
 }
 
 div.extra-panel > div.extra-eq > div.select-eq-phone > select {

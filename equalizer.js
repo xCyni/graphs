@@ -4,7 +4,7 @@ https://github.com/jaakkopasanen/AutoEq/blob/master/biquad.py
 https://github.com/mohayonao/biquad-coeffs/tree/master/packages/biquad-coeffs-cookbook
 */
 
-Equlizer = (function() {
+Equalizer = (function() {
     let config = {
         DefaultSampleRate: 48000
     };
