@@ -13,6 +13,7 @@ Modifications:
 - Add extra features
     - Allow uploading frequence response file
     - Allow uploading target file
+    - Parametic equalizer
 - Change default options in config.js
     - alt_layout: true
     - stickyLabels: true
