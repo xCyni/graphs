@@ -2863,10 +2863,6 @@ Responsive styles *****/
         pointer-events: none;
     }
     
-    div.selector-tabs {
-        display: none;
-    }
-    
     div.scroll > div.phone-item {
         width: calc(100vw - 94px);
     }
@@ -3159,10 +3155,6 @@ Responsive styles *****/
         flex: 600px 0 0;
     }
     
-    div.select > div.selector-tabs {
-        display: none;
-    }
-    
     div.select > div.selector-panel > div.scroll-container {
         display: flex;
         max-height: 100%;
@@ -3230,19 +3222,6 @@ Responsive styles *****/
     tbody.curves > tr > td.hideIcon,
     tbody.curves > tr > td.button-pin {
         order: 5;
-    }
-}
-
-/* Edge cases */
-@media ( max-height: 500px ) {
-    div.select > div.selector-tabs {
-        display: none;
-    }
-}
-
-@media ( min-aspect-ratio: 1/1 ) and ( max-height: 800px ) and ( max-width: 1000px ) {
-    div.select > div.selector-tabs {
-        display: none;
     }
 }
 
