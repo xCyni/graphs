@@ -1558,7 +1558,7 @@ function showPhone(p, exclusive, suppressVariant, trigger) {
     } else {
         document.activeElement.blur();
     }
-    if (enableExtra && enableExtraEQ) {
+    if (extraEnabled && extraEQEnabled) {
         updateEQPhoneSelect();
     }
 }
@@ -1586,7 +1586,7 @@ function removePhone(p) {
     d3.selectAll("#phones div,.target")
         .filter(q=>q===(p.copyOf||p))
         .call(setPhoneTr);
-    if (enableExtra && enableExtraEQ) {
+    if (extraEnabled && extraEQEnabled) {
         updateEQPhoneSelect();
     }
 }
@@ -2218,14 +2218,14 @@ blurFocus();
 function addExtra() {
     let extraButton = document.querySelector("div.select > div.selector-tabs > button.extra");
     // Disable functions by config
-    if (!enableExtra) {
+    if (!extraEnabled) {
         extraButton.remove();
         return;
     }
-    if (!enableExtraUpload) {
+    if (!extraUploadEnabled) {
         document.querySelector("div.extra-panel > div.extra-upload").style["display"] = "none";
     }
-    if (!enableExtraEQ) {
+    if (!extraEQEnabled) {
         document.querySelector("div.extra-panel > div.extra-eq").style["display"] = "none";
     }
     // Show and hide extra panel
@@ -2313,7 +2313,7 @@ function addExtra() {
     let eqPhoneSelect = document.querySelector("div.extra-eq select[name='phone']");
     let filtersContainer = document.querySelector("div.extra-eq > div.filters");
     let filterElem = document.querySelector("div.extra-eq > div.filters > div.filter");
-    while (filtersContainer.childElementCount < 12) {
+    while (filtersContainer.childElementCount < extraEQBands) {
         filtersContainer.appendChild(filterElem.cloneNode(true));
     }
     let filterTypeSelect = document.querySelectorAll(
@@ -2466,7 +2466,7 @@ function addExtra() {
         let exportElem = document.querySelector("#file-filters-export");
         exportElem.href && URL.revokeObjectURL(exportElem.href);
         exportElem.href = URL.createObjectURL(new Blob([settings]));
-        exportElem.download = phoneObj.fullName + " Filters.txt";
+        exportElem.download = phoneObj.fullName.replace(/^Uploaded /, "") + " Filters.txt";
         exportElem.click();
     });
     document.querySelector("div.extra-eq button.autoeq").addEventListener("click", () => {
