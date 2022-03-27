@@ -1419,7 +1419,9 @@ function fr_interp(fv, fr) {
         for (; i < fr.length-1; ++i) {
             let [f0, v0] = fr[i];
             let [f1, v1] = fr[i+1];
-            if (f >= f0 && f < f1) {
+            if (i == 0 && f < f0) {
+                return [f, v0];
+            } else if (f >= f0 && f < f1) {
                 let v = v0 + (v1 - v0) * (f - f0) / (f1 - f0);
                 return [f, v];
             }
