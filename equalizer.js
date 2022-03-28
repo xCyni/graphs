@@ -137,7 +137,8 @@ Equalizer = (function() {
     let calc_distance = function (fr1, fr2) {
         let distance = 0;
         for (let i = 0; i < fr1.length; ++i) {
-            distance += Math.abs(fr1[i][1] - fr2[i][1]);
+            let d = Math.abs(fr1[i][1] - fr2[i][1]);
+            distance += (d >= 0.5 ? d : 0);
         }
         return distance / fr1.length;
     };
@@ -231,6 +232,7 @@ Equalizer = (function() {
             config.OptimizeDeltas[iteration]);
         let [begin, end, step] = (dir ?
             [filters.length-1, -1, -1] : [0, filters.length, 1]);
+        // Optimize freq, q, gain
         for (let i = begin; i != end; i += step) {
             let f = filters[i];
             let fr1 = apply(fr, filters.filter((f, fi) => fi !== i));
@@ -275,12 +277,39 @@ Equalizer = (function() {
                 
             }
             filters[i] = bestFilter;
-            break;
         }
         if (!dir) {
             return optimize(fr, frTarget, filters, iteration, 1);
+        } else {
+            filters = filters.sort((a, b) => a.freq - b.freq);
+            // Merge closed filters
+            for (let i = 0; i < filters.length-1;) {
+                let f1 = filters[i];
+                let f2 = filters[i+1];
+                if (Math.abs(f1.freq - f2.freq) <= freq_unit(f1.freq) &&
+                    Math.abs(f1.q - f2.q) <= 0.1) {
+                    f1.gain += f2.gain;
+                    filters.splice(i+1, 1);
+                } else {
+                    ++i;
+                }
+            }
+            // Remove unnecessary filters
+            let bestDistance = calc_distance(apply(fr, filters), frTarget);
+            for (let i = 0; i < filters.length; ++i) {
+                if (Math.abs(filters[i].gain) <= 0.1) {
+                    filters.splice(i, 1);
+                    continue;
+                }
+                let newDistance = calc_distance(apply(fr,
+                    filters.filter((f, fi) => fi !== i)), frTarget);
+                if (newDistance < bestDistance) {
+                    filters.splice(i, 1);
+                    bestDistance = newDistance;
+                }
+            }
+            return filters;
         }
-        return filters.sort((a, b) => a.freq - b.freq);
     };
 
     let autoeq = function (fr, frTarget, maxFilters) {
@@ -300,7 +329,7 @@ Equalizer = (function() {
         }
         let secondFR = apply(fr, firstFilters);
         let secondBatchSize = maxFilters - firstFilters.length;
-        let secondCandidates = search_candidates(secondFR, frTarget, 1);
+        let secondCandidates = search_candidates(secondFR, frTarget, 0.5);
         let secondFilters = (secondCandidates
             .sort((a, b) => a.q - b.q)
             .slice(0, secondBatchSize)
