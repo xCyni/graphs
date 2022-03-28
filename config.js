@@ -233,7 +233,8 @@ setupGraphAnalytics();
 
 
 // If alt_header is enabled, these are the items added to the header
-let headerLogoImgUrl = "cringraph-logo.svg",
+let headerLogoText = null,
+    headerLogoImgUrl = "cringraph-logo.svg",
     headerLinks = [
     {
         name: "Sample",

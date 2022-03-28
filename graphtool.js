@@ -168,7 +168,7 @@ doc.html(`
                 <button class="sort-filters">Sort</button>
                 <button class="import-filters">Import</button>
                 <button class="export-filters">Export</button>
-                <button class="autoeq">Auto EQ</button>
+                <button class="autoeq">AutoEQ</button>
               </div>
               <a style="display: none" id="file-filters-export"></a>
               <form style="display:none"><input type="file" id="file-filters-import" accept=".txt" /></form>
@@ -177,6 +177,7 @@ doc.html(`
         </div>
       </div>
     </section>
+    <div style="display: none" class="extra-eq-overlay">AutoEQ is running, it could take 5~20 seconds or more.</div>
   </main>
 `);
 
@@ -2470,12 +2471,17 @@ function addExtra() {
             alert("Please select model and target, if there are no target and multiple models are displayed then the second one will be selected as target.");
             return;
         }
-        let filters = Equalizer.autoeq(
-            phoneObj.rawChannels.filter(c => c)[0].map(([f, v]) => [f, v + phoneObj.norm]),
-            targetObj.rawChannels.filter(c => c)[0].map(([f, v]) => [f, v + targetObj.norm]),
-            extraAutoEQBands);
-        filtersToElem(filters);
-        applyEQ();
+        let autoEQOverlay = document.querySelector(".extra-eq-overlay");
+        autoEQOverlay.style.display = "block";
+        setTimeout(() => {
+            let filters = Equalizer.autoeq(
+                phoneObj.rawChannels.filter(c => c)[0].map(([f, v]) => [f, v + phoneObj.norm]),
+                targetObj.rawChannels.filter(c => c)[0].map(([f, v]) => [f, v + targetObj.norm]),
+                extraAutoEQBands);
+            filtersToElem(filters);
+            applyEQ();
+            autoEQOverlay.style.display = "none";
+        }, 100);
     });
 }
 addExtra();
@@ -2497,12 +2503,18 @@ function addHeader() {
         headerLogoElem = document.createElement("div"),
         headerLogoLink = document.createElement("a"),
         headerLogoImg = document.createElement("img"),
+        headerLogoSpan = document.createElement("span"),
         linksList = document.createElement("ul");
     
     headerLogoElem.className = "logo";
     headerLogoLink.setAttribute('href', site_url);
-    headerLogoImg.setAttribute("src", headerLogoImgUrl);
-    headerLogoLink.append(headerLogoImg);
+    if (headerLogoText) {
+        headerLogoSpan.innerText = headerLogoText;
+        headerLogoLink.append(headerLogoSpan);
+    } else if (headerLogoImgUrl) {
+        headerLogoImg.setAttribute("src", headerLogoImgUrl);
+        headerLogoLink.append(headerLogoImg);
+    }
     headerLogoElem.append(headerLogoLink);
     altHeaderElem.setAttribute("data-links", "");
     altHeaderElem.append(headerLogoElem);

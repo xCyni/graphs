@@ -212,7 +212,8 @@ setupGraphAnalytics();
 
 
 // If alt_header is enabled, these are the items added to the header
-let headerLogoImgUrl = "data_rohsa/icon_header.png",
+let headerLogoText = "Rohsa Graph Tool",
+    headerLogoImgUrl = null,
     headerLinks = [
     {
         name: "Workshop",
