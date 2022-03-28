@@ -764,7 +764,7 @@ function loadFiles(p, callback) {
         if (!frs.some(f=>f!==null)) {
             alert("Headphone not found!");
         } else {
-            let ch = frs.map(f => f && fr_interp(f_values, tsvParse(f)));
+            let ch = frs.map(f => f && Equalizer.interp(f_values, tsvParse(f)));
             callback(ch);
         }
     });
@@ -1411,23 +1411,6 @@ function colorPhones() {
         .select("td.channels"); // Key line
     t.select("svg").remove();
     t.append("svg").call(addKey);
-}
-
-function fr_interp(fv, fr) {
-    let i = 0;
-    return fv.map(f => {
-        for (; i < fr.length-1; ++i) {
-            let [f0, v0] = fr[i];
-            let [f1, v1] = fr[i+1];
-            if (i == 0 && f < f0) {
-                return [f, v0];
-            } else if (f >= f0 && f < f1) {
-                let v = v0 + (v1 - v0) * (f - f0) / (f1 - f0);
-                return [f, v];
-            }
-        }
-        return [f, fr[fr.length-1][1]];
-    });
 }
 
 let f_values = (function() {
@@ -2284,10 +2267,10 @@ function addExtra() {
             let phone = { name: name };
             let ch = [tsvParse(e.target.result)];
             if (ch[0].length < 128) {
-                alert("Error: Invalid frequence response file.");
+                alert("Parse frequence response file failed: invalid format.");
                 return;
             }
-            ch[0] = fr_interp(f_values, ch[0]);
+            ch[0] = Equalizer.interp(f_values, ch[0]);
             if (uploadType === "fr") {
                 name.match(/ R$/) && ch.splice(0, 0, null);
                 let phoneObj = addOrUpdatePhone(brandMap.Uploaded, phone, ch);
@@ -2346,7 +2329,7 @@ function addExtra() {
         while (filtersCopy.length < filterTypeSelect.length) {
             filtersCopy.push({ type: "PK", freq: 0, q: 0, gain: 0 });
         }
-        filters.slice(0, filterTypeSelect.length).forEach((f, i) => {
+        filtersCopy.slice(0, filterTypeSelect.length).forEach((f, i) => {
             filterTypeSelect[i].value = f.type;
             filterFreqInput[i].value = f.freq;
             filterQInput[i].value = f.q;
@@ -2434,22 +2417,23 @@ function addExtra() {
                 }
                 return { type, freq, q, gain };
             }).filter(f => f);
-            filtersToElem(filters);
-            applyEQ();
+            if (filters.length > 0) {
+                filtersToElem(filters);
+                applyEQ();
+            } else {
+                alert("Parse filters file failed: no filter found.");
+            }
         };
         reader.readAsText(file);
     });
     document.querySelector("div.extra-eq button.export-filters").addEventListener("click", () => {
         // Export filters
         let phoneSelected = eqPhoneSelect.value;
+        let phoneObj = phoneSelected && activePhones.filter(
+            p => p.fullName == phoneSelected && p.eq)[0];
         let filters = elemToFilters(true);
-        if (!phoneSelected || !filters.length) {
-            alert("Error: Model not selected or no filters.");
-            return;
-        }
-        let phoneObj = activePhones.filter(p => p.fullName == phoneSelected && p.eq)[0];
-        if (!phoneObj) {
-            alert("Error: EQ not applied.");
+        if (!phoneObj || !filters.length) {
+            alert("Please select model and add atleast one filter before export.");
             return;
         }
         let preamp = Equalizer.calc_preamp(
@@ -2471,7 +2455,27 @@ function addExtra() {
     });
     document.querySelector("div.extra-eq button.autoeq").addEventListener("click", () => {
         // Generate filters automatically
-        alert("TODO: Not implemented.")
+        let phoneSelected = eqPhoneSelect.value;
+        if (!phoneSelected) {
+            let firstPhone = eqPhoneSelect.querySelectorAll("option")[1];
+            if (firstPhone) {
+                phoneSelected = eqPhoneSelect.value = firstPhone.value;
+            }
+        }
+        let phoneObj = phoneSelected && activePhones.filter(
+            p => p.fullName == phoneSelected)[0];
+        let targetObj = (activePhones.filter(p => p.isTarget)[0] ||
+            activePhones.filter(p => p !== phoneObj && !p.isTarget)[0]);
+        if (!phoneObj || !targetObj) {
+            alert("Please select model and target, if there are no target and multiple models are displayed then the second one will be selected as target.");
+            return;
+        }
+        let filters = Equalizer.autoeq(
+            phoneObj.rawChannels.filter(c => c)[0].map(([f, v]) => [f, v + phoneObj.norm]),
+            targetObj.rawChannels.filter(c => c)[0].map(([f, v]) => [f, v + targetObj.norm]),
+            extraAutoEQBands);
+        filtersToElem(filters);
+        applyEQ();
     });
 }
 addExtra();
