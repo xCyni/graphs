@@ -240,9 +240,7 @@ Equalizer = (function() {
             let fr3 = apply(fr, filters);
             let bestFilter = f;
             let bestDistance = calc_distance(fr2, frTarget);
-            let testIter = 0;
             let testNewFilter = (df, dq, dg) => {
-                ++testIter;
                 let freq = f.freq + df * freq_unit(f.freq) * stepDF;
                 let q = f.q + dq * stepDQ;
                 let gain = f.gain + dg * stepDG;
@@ -274,7 +272,6 @@ Equalizer = (function() {
                         }
                     }
                 }
-                
             }
             filters[i] = bestFilter;
         }
@@ -296,7 +293,7 @@ Equalizer = (function() {
             }
             // Remove unnecessary filters
             let bestDistance = calc_distance(apply(fr, filters), frTarget);
-            for (let i = 0; i < filters.length; ++i) {
+            for (let i = 0; i < filters.length;) {
                 if (Math.abs(filters[i].gain) <= 0.1) {
                     filters.splice(i, 1);
                     continue;
@@ -306,6 +303,8 @@ Equalizer = (function() {
                 if (newDistance < bestDistance) {
                     filters.splice(i, 1);
                     bestDistance = newDistance;
+                } else {
+                    ++i;
                 }
             }
             return filters;
