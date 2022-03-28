@@ -2474,10 +2474,11 @@ function addExtra() {
         let autoEQOverlay = document.querySelector(".extra-eq-overlay");
         autoEQOverlay.style.display = "block";
         setTimeout(() => {
-            let filters = Equalizer.autoeq(
-                phoneObj.rawChannels.filter(c => c)[0].map(([f, v]) => [f, v + phoneObj.norm]),
-                targetObj.rawChannels.filter(c => c)[0].map(([f, v]) => [f, v + targetObj.norm]),
-                extraAutoEQBands);
+            let phoneCHs = (phoneObj.rawChannels.filter(c => c)
+                .map(ch => ch.map(([f, v]) => [f, v + phoneObj.norm])));
+            let phoneCH = (phoneCHs.length > 1) ? avgCurves(phoneCHs) : phoneCHs[0];
+            let targetCH = targetObj.rawChannels.filter(c => c)[0].map(([f, v]) => [f, v + targetObj.norm]);
+            let filters = Equalizer.autoeq(phoneCH, targetCH, extraAutoEQBands);
             filtersToElem(filters);
             applyEQ();
             autoEQOverlay.style.display = "none";
