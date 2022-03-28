@@ -138,7 +138,7 @@ Equalizer = (function() {
         let distance = 0;
         for (let i = 0; i < fr1.length; ++i) {
             let d = Math.abs(fr1[i][1] - fr2[i][1]);
-            distance += (d >= 0.5 ? d : 0);
+            distance += (d >= 0.1 ? d : 0);
         }
         return distance / fr1.length;
     };
