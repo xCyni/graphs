@@ -2328,8 +2328,11 @@ function addExtra() {
         filterFreqInput = filtersContainer.querySelectorAll("input[name='freq']");
         filterQInput = filtersContainer.querySelectorAll("input[name='q']");
         filterGainInput = filtersContainer.querySelectorAll("input[name='gain']");
+        filtersContainer.querySelectorAll("input,select").forEach(el => {
+            el.removeEventListener("input", applyEQ);
+            el.addEventListener("input", applyEQ);
+        });
     };
-    updateFilterElements();
     let elemToFilters = (includeAll) => {
         // Collect filters from ui
         let filters = [];
@@ -2406,12 +2409,8 @@ function addExtra() {
         });
         eqPhoneSelect.value = (optionValues.indexOf(oldValue) >= 0) ? oldValue : "";
     };
+    updateFilterElements();
     eqPhoneSelect.addEventListener("input", applyEQ);
-    filterEnabledInput.forEach(el => el.addEventListener("input", applyEQ));
-    filterTypeSelect.forEach(el => el.addEventListener("input", applyEQ));
-    filterFreqInput.forEach(el => el.addEventListener("input", applyEQ));
-    filterQInput.forEach(el => el.addEventListener("input", applyEQ));
-    filterGainInput.forEach(el => el.addEventListener("input", applyEQ));
     document.querySelector("div.extra-eq button.add-filter").addEventListener("click", () => {
         eqBands = Math.min(eqBands + 1, extraEQBandsMax);
         updateFilterElements();
