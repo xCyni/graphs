@@ -2245,24 +2245,20 @@ function addExtra() {
         fileFR.click();
     });
     let addOrUpdatePhone = (brand, phone, ch) => {
+        let phoneObj = asPhoneObj(brand, phone);
+        phoneObj.rawChannels = ch;
         let phoneObjs = brand.phoneObjs;
-        let phoneObj = phoneObjs.filter(p => p.phone == phone.name)[0]
-        let oldPhoneId = undefined;
-        if (phoneObj) {
-            oldPhoneId = phoneObj.id;
-            phoneObj.active && removePhone(phoneObj);
-            phoneObjs.splice(phoneObjs.indexOf(phoneObj), 1);
-            allPhones.splice(allPhones.indexOf(phoneObj), 1);
+        let oldPhoneObj = phoneObjs.filter(p => p.phone == phone.name)[0]
+        if (oldPhoneObj) {
+            oldPhoneObj.active && removePhone(oldPhoneObj);
+            phoneObj.id = oldPhoneObj.id;
+            phoneObjs[phoneObjs.indexOf(oldPhoneObj)] = phoneObj;
+            allPhones[allPhones.indexOf(oldPhoneObj)] = phoneObj;
         } else {
             brand.phones.push(phone);
+            phoneObjs.push(phoneObj);
+            allPhones.push(phoneObj);
         }
-        phoneObj = asPhoneObj(brand, phone);
-        phoneObj.rawChannels = ch;
-        if (oldPhoneId !== undefined) {
-            phoneObj.id = oldPhoneId;
-        }
-        phoneObjs.push(phoneObj);
-        allPhones.push(phoneObj);
         updatePhoneSelect();
         return phoneObj;
     };
