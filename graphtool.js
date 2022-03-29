@@ -153,18 +153,27 @@ doc.html(`
               </div>
               <div class="filters">
                 <div class="filter">
-                    <select name="type">
+                    <span>
+                      <input name="enabled" type="checkbox" checked></input>
+                      <select name="type">
                         <option value="PK" selected>PK</option>
                         <option value="LSQ">LSQ</option>
                         <option value="HSQ">HSQ</option>
-                        <option value="">Disable</option>
-                    </select>
+                      </select>
+                    </span>
                     <span><input name="freq" type="number" min="20" max="20000" step="1" value="0"></input></span>
                     <span><input name="q" type="number" min="0" max="10" step="0.1" value="0"></input></span>
                     <span><input name="gain" type="number" min="-40" max="40" step="0.1" value="0"></input></span>
                 </div>
               </div>
+              <div class="filters-autoeq-settings">
+                <span>AutoEQ Range</span>
+                <span><input name="autoeq-from" type="number" min="20" max="20000" step="1" value="20"></input></span>
+                <span><input name="autoeq-to" type="number" min="20" max="20000" step="1" value="20000"></input></span>
+              </div>
               <div class="filters-button">
+                <button class="add-filter">＋</button>
+                <button class="remove-filter">－</button>
                 <button class="sort-filters">Sort</button>
                 <button class="import-filters">Import</button>
                 <button class="export-filters">Export</button>
@@ -2296,41 +2305,60 @@ function addExtra() {
     // EQ Function
     let eqPhoneSelect = document.querySelector("div.extra-eq select[name='phone']");
     let filtersContainer = document.querySelector("div.extra-eq > div.filters");
-    let filterElem = document.querySelector("div.extra-eq > div.filters > div.filter");
-    while (filtersContainer.childElementCount < extraEQBands) {
-        filtersContainer.appendChild(filterElem.cloneNode(true));
-    }
-    let filterTypeSelect = document.querySelectorAll(
-        "div.extra-eq > div.filters > div.filter select[name='type']");
-    let filterFreqInput = document.querySelectorAll(
-        "div.extra-eq > div.filters > div.filter input[name='freq']");
-    let filterQInput = document.querySelectorAll(
-        "div.extra-eq > div.filters > div.filter input[name='q']");
-    let filterGainInput = document.querySelectorAll(
-        "div.extra-eq > div.filters > div.filter input[name='gain']");
     let fileFiltersImport = document.querySelector("#file-filters-import");
+    let filterEnabledInput, filterTypeSelect,
+        filterFreqInput, filterQInput, filterGainInput;
+    let eqBands = extraEQBands;
+    let updateFilterElements = () => {
+        let node = filtersContainer.querySelector("div.filter");
+        while (filtersContainer.childElementCount < eqBands) {
+            let clone = node.cloneNode(true);
+            clone.querySelector("input[name='enabled']").value = "true";
+            clone.querySelector("select[name='type']").value = "PK";
+            clone.querySelector("input[name='freq']").value = "0";
+            clone.querySelector("input[name='q']").value = "0";
+            clone.querySelector("input[name='gain']").value = "0";
+            filtersContainer.appendChild(clone);
+        }
+        while (filtersContainer.childElementCount > eqBands) {
+            filtersContainer.children[filtersContainer.childElementCount-1].remove();
+        }
+        filterEnabledInput = filtersContainer.querySelectorAll("input[name='enabled']");
+        filterTypeSelect = filtersContainer.querySelectorAll("select[name='type']");
+        filterFreqInput = filtersContainer.querySelectorAll("input[name='freq']");
+        filterQInput = filtersContainer.querySelectorAll("input[name='q']");
+        filterGainInput = filtersContainer.querySelectorAll("input[name='gain']");
+    };
+    updateFilterElements();
     let elemToFilters = (includeAll) => {
         // Collect filters from ui
         let filters = [];
-        for (let i = 0; i < filterTypeSelect.length; ++i) {
+        for (let i = 0; i < eqBands; ++i) {
+            let disabled = !filterEnabledInput[i].checked;
             let type = filterTypeSelect[i].value;
             let freq = parseInt(filterFreqInput[i].value) || 0;
             let q = parseFloat(filterQInput[i].value) || 0;
             let gain = parseFloat(filterGainInput[i].value) || 0;
-            if (!includeAll && (!type || !freq || !q || !gain)) {
+            if (!includeAll && (disabled || !type || !freq || !q || !gain)) {
                 continue;
             }
-            filters.push({ type, freq, q, gain });
+            filters.push({ disabled, type, freq, q, gain });
         }
         return filters;
     };
     let filtersToElem = (filters) => {
         // Set filters to ui
         let filtersCopy = filters.map(f => f);
-        while (filtersCopy.length < filterTypeSelect.length) {
+        while (filtersCopy.length < eqBands) {
             filtersCopy.push({ type: "PK", freq: 0, q: 0, gain: 0 });
         }
-        filtersCopy.slice(0, filterTypeSelect.length).forEach((f, i) => {
+        if (filtersCopy.length > eqBands) {
+            eqBands = Math.min(filtersCopy.length, extraEQBandsMax);
+            filtersCopy = filtersCopy.slice(0, eqBands);
+            updateFilterElements();
+        }
+        filtersCopy.forEach((f, i) => {
+            filterEnabledInput[i].checked = !f.disabled;
             filterTypeSelect[i].value = f.type;
             filterFreqInput[i].value = f.freq;
             filterQInput[i].value = f.q;
@@ -2349,12 +2377,10 @@ function addExtra() {
                 phoneSelected = eqPhoneSelect.value = firstPhone.value;
             }
         }
-        if (!phoneSelected || !filters.length) {
-            return;
-        }
-        let phoneObj = activePhones.filter(p => p.fullName == phoneSelected)[0];
-        if (!phoneObj) {
-            return;
+        let phoneObj = phoneSelected && activePhones.filter(
+            p => p.fullName == phoneSelected)[0];
+        if (!phoneObj || (!filters.length && !phoneObj.eq)) {
+            return; // Allow empty filters if eq is applied before
         }
         let phoneEQ = { name: phoneObj.phone + " EQ" };
         let phoneObjEQ = addOrUpdatePhone(phoneObj.brand, phoneEQ,
@@ -2381,10 +2407,20 @@ function addExtra() {
         eqPhoneSelect.value = (optionValues.indexOf(oldValue) >= 0) ? oldValue : "";
     };
     eqPhoneSelect.addEventListener("input", applyEQ);
+    filterEnabledInput.forEach(el => el.addEventListener("input", applyEQ));
     filterTypeSelect.forEach(el => el.addEventListener("input", applyEQ));
     filterFreqInput.forEach(el => el.addEventListener("input", applyEQ));
     filterQInput.forEach(el => el.addEventListener("input", applyEQ));
     filterGainInput.forEach(el => el.addEventListener("input", applyEQ));
+    document.querySelector("div.extra-eq button.add-filter").addEventListener("click", () => {
+        eqBands = Math.min(eqBands + 1, extraEQBandsMax);
+        updateFilterElements();
+    });
+    document.querySelector("div.extra-eq button.remove-filter").addEventListener("click", () => {
+        eqBands = Math.max(eqBands - 1, 1);
+        updateFilterElements();
+        applyEQ(); // May removed effective filter
+    });
     document.querySelector("div.extra-eq button.sort-filters").addEventListener("click", () => {
         filtersToElem(elemToFilters(true).sort((a, b) =>
             (a.freq || Infinity) - (b.freq || Infinity)));
@@ -2405,7 +2441,8 @@ function addExtra() {
             let filters = settings.split("\n").map(l => {
                 let r = l.match(/Filter\s*\d+:\s*(\S+)\s*(\S+)\s*Fc\s*(\S+)\s*Hz\s*Gain\s*(\S+)\s*dB(\s*Q\s*(\S+))?/);
                 if (!r) { return undefined; }
-                let type = (r[1] === "ON") ? r[2] : "";
+                let disabled = (r[1] !== "ON");
+                let type = r[2];
                 let freq = parseInt(r[3]) || 0;
                 let gain = parseFloat(r[4]) || 0;
                 let q = parseFloat(r[6]) || 0;
@@ -2413,11 +2450,17 @@ function addExtra() {
                     type += "Q";
                     q = 0.707;
                 }
-                if (!type && !freq && !gain && !q) {
-                    type = "PK";
-                }
-                return { type, freq, q, gain };
+                return { disabled, type, freq, q, gain };
             }).filter(f => f);
+            while (filters.length > 0) {
+                // Remove empty tail filters
+                let lastFilter = filters[filters.length-1];
+                if (!lastFilter.freq && !lastFilter.q && !lastFilter.gain) {
+                    filters.pop(); 
+                } else {
+                    break;
+                }
+            }
             if (filters.length > 0) {
                 filtersToElem(filters);
                 applyEQ();
@@ -2442,9 +2485,8 @@ function addExtra() {
             phoneObj.eq.rawChannels.filter(c => c)[0]);
         let settings = "Preamp: " + preamp.toFixed(1) + " dB\r\n";
         filters.forEach((f, i) => {
-            let type = f.type || "PK";
-            let on = (f.type && f.freq && f.gain && f.q) ? "ON" : "OFF";
-            settings += ("Filter " + (i+1) + ": " + on + " " + type + " Fc " +
+            let on = (!f.disabled && f.type && f.freq && f.gain && f.q) ? "ON" : "OFF";
+            settings += ("Filter " + (i+1) + ": " + on + " " + f.type + " Fc " +
                 f.freq.toFixed(0) + " Hz Gain " + f.gain.toFixed(1) + " dB Q " +
                 f.q.toFixed(3) + "\r\n");
         });
@@ -2471,14 +2513,19 @@ function addExtra() {
             alert("Please select model and target, if there are no target and multiple models are displayed then the second one will be selected as target.");
             return;
         }
+        let autoEQFromInput = document.querySelector(".filters-autoeq-settings input[name='autoeq-from']");
+        let autoEQToInput = document.querySelector(".filters-autoeq-settings input[name='autoeq-to']");
         let autoEQOverlay = document.querySelector(".extra-eq-overlay");
         autoEQOverlay.style.display = "block";
         setTimeout(() => {
+            let autoEQFrom = Math.min(Math.max(parseInt(autoEQFromInput.value) || 0, 20), 20000);
+            let autoEQTo = Math.min(Math.max(parseInt(autoEQToInput.value) || 0, autoEQFrom), 20000);
+            Equalizer.config.AutoEQRange = [autoEQFrom, autoEQTo];
             let phoneCHs = (phoneObj.rawChannels.filter(c => c)
                 .map(ch => ch.map(([f, v]) => [f, v + phoneObj.norm])));
             let phoneCH = (phoneCHs.length > 1) ? avgCurves(phoneCHs) : phoneCHs[0];
             let targetCH = targetObj.rawChannels.filter(c => c)[0].map(([f, v]) => [f, v + targetObj.norm]);
-            let filters = Equalizer.autoeq(phoneCH, targetCH, extraAutoEQBands);
+            let filters = Equalizer.autoeq(phoneCH, targetCH, eqBands);
             filtersToElem(filters);
             applyEQ();
             autoEQOverlay.style.display = "none";

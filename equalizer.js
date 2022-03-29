@@ -8,6 +8,7 @@ Equalizer = (function() {
     let config = {
         DefaultSampleRate: 48000,
         TrebleStartFrom: 7000,
+        AutoEQRange: [20, 20000],
         OptimizeQRange: [0.5, 2],
         OptimizeGainRange: [-12, 12],
         OptimizeDeltas: [
@@ -172,6 +173,7 @@ Equalizer = (function() {
         let state = 0; // 1: peak, 0: matched, -1: dip
         let startIndex = -1;
         let candidates = [];
+        let [minFreq, maxFreq] = config.AutoEQRange;
         for (let i = 0; i < fr.length; ++i) {
             let [f, v0] = fr[i];
             let v1 = frTarget[i][1];
@@ -190,7 +192,9 @@ Equalizer = (function() {
                         interp([center], frTarget.slice(startIndex, i))[0][1] -
                         interp([center], fr.slice(startIndex, i))[0][1]);
                     let q = center / (end - start);
-                    candidates.push({ type: "PK", freq: center, q, gain });
+                    if (center >= minFreq && center <= maxFreq) {
+                        candidates.push({ type: "PK", freq: center, q, gain });
+                    }
                 }
                 startIndex = -1;
             } else {
@@ -226,6 +230,7 @@ Equalizer = (function() {
     let optimize = function (fr, frTarget, filters, iteration, dir) {
         filters = strip(filters);
         let combinations = [];
+        let [minFreq, maxFreq] = config.AutoEQRange;
         let [minQ, maxQ] = config.OptimizeQRange;
         let [minGain, maxGain] = config.OptimizeGainRange;
         let [maxDF, maxDQ, maxDG, stepDF, stepDQ, stepDG] = (
@@ -244,7 +249,7 @@ Equalizer = (function() {
                 let freq = f.freq + df * freq_unit(f.freq) * stepDF;
                 let q = f.q + dq * stepDQ;
                 let gain = f.gain + dg * stepDG;
-                if (freq < 20 || freq > 20000 || q < minQ ||
+                if (freq < minFreq || freq > maxFreq || q < minQ ||
                     q > maxQ || gain < minGain || gain > maxGain) {
                     return false;
                 }

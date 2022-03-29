@@ -32,8 +32,8 @@ const init_phones = ["HTH67"],                      // Optional. Which graphs to
       extraEnabled = true,                          // Enable extra features
       extraUploadEnabled = true,                    // Enable upload function
       extraEQEnabled = true,                        // Enable parametic eq function
-      extraEQBands = 12,                            // Maximum EQ bands available
-      extraAutoEQBands = 12;                        // Maximum EQ bands available for AutoEQ function
+      extraEQBands = 10,                            // Default EQ bands available
+      extraEQBandsMax = 20;                         // Max EQ bands available
 
 // Specify which targets to display
 const targets = [

@@ -848,7 +848,7 @@ div.miscTools button,
 div.extra-panel button {
     order: 1;
     
-    padding: 11px 16px;
+    padding: 11px 8px;
     margin: 0;
     
     background-color: var(--background-color) !important;
@@ -943,7 +943,8 @@ div.extra-panel span {
 }
 
 div.extra-panel > div.extra-eq > div.select-eq-phone,
-div.extra-panel > div.extra-eq > div.filters {
+div.extra-panel > div.extra-eq > div.filters,
+div.extra-panel > div.extra-eq > div.filters-autoeq-settings {
     margin: 0 0 0.5em 0;
 }
 
@@ -951,18 +952,30 @@ div.extra-panel > div.extra-eq > div.select-eq-phone > select {
     width: 99%;
 }
 
-div.extra-panel > div.extra-eq > div.filters-header > span {
-    width: 24%;
-    display: inline-block;
-}
-
-div.extra-panel > div.extra-eq > div.filters > div.filter > select,
+div.extra-panel > div.extra-eq > div.filters-header > span,
 div.extra-panel > div.extra-eq > div.filters > div.filter > span {
     width: 24%;
     display: inline-block;
 }
 
-div.extra-panel > div.extra-eq > div.filters > div.filter > span > input {
+div.extra-panel > div.extra-eq > div.filters > div.filter > span > input[type='checkbox'] {
+    width: 20%;
+    margin: 0;
+    -webkit-appearance: checkbox;
+    appearance: checkbox;
+}
+
+div.extra-panel > div.extra-eq > div.filters > div.filter > span > select {
+    width: 70%;
+}
+
+div.extra-panel > div.extra-eq > div.filters-autoeq-settings > span {
+    width: 30%;
+    display: inline-block;
+}
+
+div.extra-panel > div.extra-eq > div.filters > div.filter > span > input,
+div.extra-panel > div.extra-eq > div.filters-autoeq-settings > span > input {
     width: 90%;
 }
 
