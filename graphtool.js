@@ -139,7 +139,7 @@ doc.html(`
               <form style="display:none"><input type="file" id="file-fr" accept=".csv,.txt" /></form>
             </div>
             <div class="extra-eq">
-              <h5>Parametic Equalizer</h2>
+              <h5>Parametric Equalizer</h2>
               <div class="select-eq-phone">
                 <select name="phone">
                     <option value="" selected>Choose EQ model</option>

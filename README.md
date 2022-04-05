@@ -8,12 +8,12 @@ Modifications:
 - Provide universal csv/tsv parser, remove data_format option
 - Do not invert header and watermark in dark mode
 - Open header links on new tab
-- Fix Hz normalization for different resolution files
+- Interpolate frequence responses to 1/48 octave, allow difference resolution files
 - Fix label display for show/hide graphs
 - Add extra features
     - Allow uploading frequence response file
     - Allow uploading target file
-    - Parametic equalizer
+    - Parametric equalizer
 - Change default options in config.js
     - alt_layout: true
     - stickyLabels: true
