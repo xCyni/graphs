@@ -1089,7 +1089,7 @@ let baseURL;  // Set by setInitPhones
 function addPhonesToUrl() {
     let title = baseTitle,
         url = baseURL,
-        names = activePhones.map(p => p.fileName),
+        names = activePhones.filter(p => !p.isDynamic).map(p => p.fileName),
         namesCombined = names.join(", ");
     
     if (names.length) {
@@ -2247,6 +2247,7 @@ function addExtra() {
     let addOrUpdatePhone = (brand, phone, ch) => {
         let phoneObj = asPhoneObj(brand, phone);
         phoneObj.rawChannels = ch;
+        phoneObj.isDynamic = true;
         let phoneObjs = brand.phoneObjs;
         let oldPhoneObj = phoneObjs.filter(p => p.phone == phone.name)[0]
         if (oldPhoneObj) {
@@ -2291,6 +2292,7 @@ function addExtra() {
                     fullName: fullName,
                     fileName: fullName,
                     rawChannels: ch,
+                    isDynamic: true,
                     id: -brandTarget.phoneObjs.length
                 };
                 showPhone(phoneObj, true);
