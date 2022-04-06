@@ -16,6 +16,7 @@ Modifications:
     - Parametric equalizer
 - Change default options in config.js
     - alt_layout: true
+    - labelsPosition: "bottom-right"
     - stickyLabels: true
 
 How to use this repository for your own project:
