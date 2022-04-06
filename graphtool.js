@@ -1121,7 +1121,7 @@ function updatePaths(trigger) {
 }
 let colorBar = p=>'url(\'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 5 8"><path d="M0 8v-8h1c0.05 1.5,-0.3 3,-0.16 5s0.1 2,0.15 3z" fill="'+getBgColor(p)+'"/></svg>\')';
 function updatePhoneTable() {
-    let c = table.selectAll("tr").data(activePhones, p=>p.id);
+    let c = table.selectAll("tr").data(activePhones, p=>p.fileName);
     c.exit().remove();
     let f = c.enter().append("tr"),
         td = () => f.append("td");
@@ -2284,6 +2284,11 @@ function addExtra() {
                 showPhone(phoneObj, false);
             } else if (uploadType === "target") {
                 let fullName = name + (name.match(/ Target$/i) ? "" : " Target");
+                let existsTargets = targets.reduce((a, b) => a.concat(b.files), []).map(f => f += " Target");
+                if (existsTargets.indexOf(fullName) >= 0) {
+                    alert("This target already exists on this tool, please select it instead of upload.");
+                    return;
+                }
                 let phoneObj = {
                     isTarget: true,
                     brand: brandTarget,
