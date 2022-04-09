@@ -178,6 +178,7 @@ doc.html(`
                 <button class="import-filters">Import</button>
                 <button class="export-filters">Export</button>
                 <button class="autoeq">AutoEQ</button>
+                <button class="export-graphic-filters">Export Graphic EQ (For Wavelet)</button>
               </div>
               <a style="display: none" id="file-filters-export"></a>
               <form style="display:none"><input type="file" id="file-filters-import" accept=".txt" /></form>
@@ -2496,6 +2497,25 @@ function addExtra() {
         exportElem.href && URL.revokeObjectURL(exportElem.href);
         exportElem.href = URL.createObjectURL(new Blob([settings]));
         exportElem.download = phoneObj.fullName.replace(/^Uploaded /, "") + " Filters.txt";
+        exportElem.click();
+    });
+    document.querySelector("div.extra-eq button.export-graphic-filters").addEventListener("click", () => {
+        // Export filters as graphic eq (for wavelet)
+        let phoneSelected = eqPhoneSelect.value;
+        let phoneObj = phoneSelected && activePhones.filter(
+            p => p.fullName == phoneSelected && p.eq)[0] || { fullName: "Unnamed" };
+        let filters = elemToFilters();
+        if (!filters.length) {
+            alert("Please atleast one filter before export.");
+            return;
+        }
+        let graphicEQ = Equalizer.as_graphic_eq(filters);
+        let settings = "GraphicEQ: " + graphicEQ.map(([f, gain]) =>
+            f.toFixed(0) + " " + gain.toFixed(1)).join("; ");
+        let exportElem = document.querySelector("#file-filters-export");
+        exportElem.href && URL.revokeObjectURL(exportElem.href);
+        exportElem.href = URL.createObjectURL(new Blob([settings]));
+        exportElem.download = phoneObj.fullName.replace(/^Uploaded /, "") + " Graphic Filters.txt";
         exportElem.click();
     });
     document.querySelector("div.extra-eq button.autoeq").addEventListener("click", () => {

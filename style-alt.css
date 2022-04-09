@@ -993,6 +993,10 @@ div.extra-eq-overlay {
     font-weight: bold;
 }
 
+div.extra-panel button {
+    margin-bottom: 4px !important;
+}
+
 /*****
 Targets styles *****/
 

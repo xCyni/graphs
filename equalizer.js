@@ -15,7 +15,13 @@ Equalizer = (function() {
             [10, 10, 10, 5, 0.1, 0.5],
             [10, 10, 10, 2, 0.1, 0.2],
             [10, 10, 10, 1, 0.1, 0.1],
-        ]
+        ],
+        GraphicEQRawFrequences: ( // ~= 1/96 octave
+            new Array(Math.ceil(Math.log(20000 / 20) / Math.log(1.0072))).fill(null)
+            .map((_, i) => 20 * Math.pow(1.0072, i))),
+        GraphicEQFrequences: Array.from(new Set( // 127 bands graphic eq
+            new Array(Math.ceil(Math.log(20000 / 20) / Math.log(1.0563))).fill(null)
+            .map((_, i) => Math.floor(20 * Math.pow(1.0563, i))))).sort((a, b) => a - b)
     };
 
     let interp = function (fv, fr) {
@@ -144,12 +150,8 @@ Equalizer = (function() {
         return distance / fr1.length;
     };
 
-    let apply = function (fr, filters, sampleRate) {
-        let freqs = new Array(fr.length).fill(null);
-        for (let i = 0; i < fr.length; ++i) {
-            freqs[i] = fr[i][0];
-        }
-        let coeffs = filters.map(f => {
+    let filters_to_coeffs = function (filters, sampleRate) {
+        return filters.map(f => {
             if (!f.freq || !f.gain || !f.q) {
                 return null;
             } else if (f.type === "LSQ") {
@@ -161,12 +163,46 @@ Equalizer = (function() {
             }
             return null;
         }).filter(f => f);
+    };
+
+    let apply = function (fr, filters, sampleRate) {
+        let freqs = new Array(fr.length).fill(null);
+        for (let i = 0; i < fr.length; ++i) {
+            freqs[i] = fr[i][0];
+        }
+        let coeffs = filters_to_coeffs(filters, sampleRate);
         let gains = calc_gains(freqs, coeffs, sampleRate);
         let fr_eq = new Array(fr.length).fill(null);
         for (let i = 0; i < fr.length; ++i) {
             fr_eq[i] = [fr[i][0], fr[i][1] + gains[i]];
         }
         return fr_eq;
+    };
+
+    let as_graphic_eq = function (filters, sampleRate) {
+        let rawFS = config.GraphicEQRawFrequences, fs = config.GraphicEQFrequences;
+        let coeffs = filters_to_coeffs(filters, sampleRate);
+        let gains = calc_gains(rawFS, coeffs, sampleRate);
+        let rawFR = rawFS.map((f, i) => [f, gains[i]]);
+        // Interpolate and smoothing with moving average
+        let i = 0;
+        let resultFR = fs.map((f, j) => {
+            let freqTo = (j < fs.length-1) ? Math.sqrt(f * fs[j+1]) : 20000;
+            let points = [];
+            for (; i < rawFS.length; ++i) {
+                if (rawFS[i] < freqTo) {
+                    points.push(rawFR[i][1]);
+                } else {
+                    break
+                }
+            }
+            let avg = points.reduce((a, b) => a + b, 0) / points.length;
+            return [f, avg];
+        });
+        // Normalize (apply preamp)
+        let maxGain = resultFR.reduce((a, b) => a > b[1] ? a : b[1], -Infinity);
+        resultFR = resultFR.map(([f, v]) => [f, v-maxGain]);
+        return resultFR;
     };
 
     let search_candidates = function (fr, frTarget, threshold) {
@@ -357,6 +393,7 @@ Equalizer = (function() {
         calc_gains,
         calc_preamp,
         apply,
+        as_graphic_eq,
         autoeq
     }
 })();
