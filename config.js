@@ -33,7 +33,8 @@ const init_phones = ["HTH67"],                      // Optional. Which graphs to
       extraUploadEnabled = true,                    // Enable upload function
       extraEQEnabled = true,                        // Enable parametic eq function
       extraEQBands = 10,                            // Default EQ bands available
-      extraEQBandsMax = 20;                         // Max EQ bands available
+      extraEQBandsMax = 20,                         // Max EQ bands available
+      extraToneGeneratorEnabled = true;             // Enable tone generator function
 
 // Specify which targets to display
 const targets = [

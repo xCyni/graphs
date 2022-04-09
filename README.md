@@ -11,9 +11,12 @@ Modifications:
 - Interpolate frequence responses to 1/48 octave, allow difference resolution files
 - Fix label display for show/hide graphs
 - Add extra features
-    - Allow uploading frequence response file
-    - Allow uploading target file
+    - Allow uploading frequence response file and target file
     - Parametric equalizer
+        - Support generating EQ filters to selected target or other model automatically
+        - Support exporting parametric eq file for DSP software like Peace
+        - Support exporting graphic eq file for DSP software like Wavelet
+    - Tone generator
 - Change default options in config.js
     - alt_layout: true
     - labelsPosition: "bottom-right"

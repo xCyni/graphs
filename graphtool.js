@@ -110,7 +110,7 @@ doc.html(`
           <div class="selector-tabs">
             <button class="brands" data-list="brands">Brands</button>
             <button class="models" data-list="models">Models</button>
-            <button class="extra">Extra</button>
+            <button class="extra">Equalizer</button>
           </div>
 
           <div class="selector-panel">
@@ -166,7 +166,7 @@ doc.html(`
                     <span><input name="gain" type="number" min="-40" max="40" step="0.1" value="0"></input></span>
                 </div>
               </div>
-              <div class="filters-autoeq-settings">
+              <div class="settings-row">
                 <span>AutoEQ Range</span>
                 <span><input name="autoeq-from" type="number" min="20" max="20000" step="1" value="20"></input></span>
                 <span><input name="autoeq-to" type="number" min="20" max="20000" step="1" value="20000"></input></span>
@@ -179,9 +179,23 @@ doc.html(`
                 <button class="export-filters">Export</button>
                 <button class="autoeq">AutoEQ</button>
                 <button class="export-graphic-filters">Export Graphic EQ (For Wavelet)</button>
+                <button class="readme">Readme</button>
               </div>
               <a style="display: none" id="file-filters-export"></a>
               <form style="display:none"><input type="file" id="file-filters-import" accept=".txt" /></form>
+            </div>
+            <div class="extra-tone-generator">
+              <h5>Tone Generator</h2>
+              <div class="settings-row">
+                <span>Freq Range</span>
+                <span><input name="tone-generator-from" type="number" min="20" max="20000" step="1" value="20"></input></span>
+                <span><input name="tone-generator-to" type="number" min="20" max="20000" step="1" value="20000"></input></span>
+              </div>
+              <div><input name="tone-generator-freq" type="range" min="0" max="1" step="0.0001" value="0" /></div>
+              <div>
+                <button class="play">Play</button>
+                <span>Frequency: <span class="freq-text">20</span> Hz</span>
+              </div>
             </div>
           </div>
         </div>
@@ -2222,6 +2236,9 @@ function addExtra() {
     if (!extraEQEnabled) {
         document.querySelector("div.extra-panel > div.extra-eq").style["display"] = "none";
     }
+    if (!extraToneGeneratorEnabled) {
+        document.querySelector("div.extra-panel > div.extra-tone-generator").style["display"] = "none";
+    }
     // Show and hide extra panel
     window.showExtraPanel = () => {
         document.querySelector("div.select > div.selector-panel").style["display"] = "none";
@@ -2415,21 +2432,24 @@ function addExtra() {
     };
     updateFilterElements();
     eqPhoneSelect.addEventListener("input", applyEQ);
+    // Add new filter
     document.querySelector("div.extra-eq button.add-filter").addEventListener("click", () => {
         eqBands = Math.min(eqBands + 1, extraEQBandsMax);
         updateFilterElements();
     });
+    // Remove last filter
     document.querySelector("div.extra-eq button.remove-filter").addEventListener("click", () => {
         eqBands = Math.max(eqBands - 1, 1);
         updateFilterElements();
         applyEQ(); // May removed effective filter
     });
+    // Sort filters by frequency
     document.querySelector("div.extra-eq button.sort-filters").addEventListener("click", () => {
         filtersToElem(elemToFilters(true).sort((a, b) =>
             (a.freq || Infinity) - (b.freq || Infinity)));
     });
+    // Import filters
     document.querySelector("div.extra-eq button.import-filters").addEventListener("click", () => {
-        // Import filters
         fileFiltersImport.click();
     });
     fileFiltersImport.addEventListener("change", (e) => {
@@ -2473,8 +2493,8 @@ function addExtra() {
         };
         reader.readAsText(file);
     });
+    // Export filters
     document.querySelector("div.extra-eq button.export-filters").addEventListener("click", () => {
-        // Export filters
         let phoneSelected = eqPhoneSelect.value;
         let phoneObj = phoneSelected && activePhones.filter(
             p => p.fullName == phoneSelected && p.eq)[0];
@@ -2499,14 +2519,14 @@ function addExtra() {
         exportElem.download = phoneObj.fullName.replace(/^Uploaded /, "") + " Filters.txt";
         exportElem.click();
     });
+    // Export filters as graphic eq (for wavelet)
     document.querySelector("div.extra-eq button.export-graphic-filters").addEventListener("click", () => {
-        // Export filters as graphic eq (for wavelet)
         let phoneSelected = eqPhoneSelect.value;
         let phoneObj = phoneSelected && activePhones.filter(
             p => p.fullName == phoneSelected && p.eq)[0] || { fullName: "Unnamed" };
         let filters = elemToFilters();
         if (!filters.length) {
-            alert("Please atleast one filter before export.");
+            alert("Please add atleast one filter before export.");
             return;
         }
         let graphicEQ = Equalizer.as_graphic_eq(filters);
@@ -2518,8 +2538,17 @@ function addExtra() {
         exportElem.download = phoneObj.fullName.replace(/^Uploaded /, "") + " Graphic Filters.txt";
         exportElem.click();
     });
-    let autoEQFromInput = document.querySelector(".filters-autoeq-settings input[name='autoeq-from']");
-    let autoEQToInput = document.querySelector(".filters-autoeq-settings input[name='autoeq-to']");
+    // Readme
+    document.querySelector("div.extra-eq button.readme").addEventListener("click", () => {
+        alert("1. If you want to AutoEQ model A to B, display A B and remove target\n" +
+            "2. Add/Remove bands before AutoEQ may give you a better result\n" +
+            "3. Curve of PK filter close to 20K is implementation dependent, avoid such filter if you're not sure how your DSP software works\n" +
+            "4. EQ treble require resonant peak matching and fine tune by ear, keep treble untouched if you're not sure how to do that\n" +
+            "5. Tone generator is useful to find actual location of peaks and dips, notice the web version may not work on some platform\n");
+    });
+    // AutoEQ
+    let autoEQFromInput = document.querySelector("div.extra-eq input[name='autoeq-from']");
+    let autoEQToInput = document.querySelector("div.extra-eq input[name='autoeq-to']");
     autoEQFromInput.value = Equalizer.config.AutoEQRange[0].toFixed(0);
     autoEQToInput.value = Equalizer.config.AutoEQRange[1].toFixed(0);
     document.querySelector("div.extra-eq button.autoeq").addEventListener("click", () => {
@@ -2555,6 +2584,50 @@ function addExtra() {
             autoEQOverlay.style.display = "none";
         }, 100);
     });
+    // Tone Generator
+    let toneGeneratorFromInput = document.querySelector("div.extra-tone-generator input[name='tone-generator-from']");
+    let toneGeneratorToInput = document.querySelector("div.extra-tone-generator input[name='tone-generator-to']");
+    let toneGeneratorSlider = document.querySelector("div.extra-tone-generator input[name='tone-generator-freq']");
+    let toneGeneratorPlayButton = document.querySelector("div.extra-tone-generator .play");
+    let toneGeneratorText = document.querySelector("div.extra-tone-generator .freq-text");
+    let toneGeneratorContext = null;
+    let toneGeneratorOsc = null;
+    let toneGeneratorTimeoutHandle = null
+    toneGeneratorSlider.addEventListener("input", () => {
+        let from = Math.min(Math.max(parseInt(toneGeneratorFromInput.value) || 0, 20), 20000);
+        let to = Math.min(Math.max(parseInt(toneGeneratorToInput.value) || 0, from), 20000);
+        let position = parseFloat(toneGeneratorSlider.value) || 0;
+        let freq = Math.round(Math.exp( // Slider move in log scale
+            Math.log(from) + (Math.log(to) - Math.log(from)) * position));
+        toneGeneratorText.innerText = freq;
+        if (toneGeneratorOsc) {
+            let t = toneGeneratorContext.currentTime;
+            toneGeneratorOsc.frequency.cancelScheduledValues(t);
+            toneGeneratorOsc.frequency.setTargetAtTime(freq, t, 0.2); // Smoother transition but also delay
+        }
+    });
+    toneGeneratorPlayButton.addEventListener("click", () => {
+        if (toneGeneratorOsc) {
+            toneGeneratorOsc.stop();
+            toneGeneratorOsc = null;
+            toneGeneratorPlayButton.innerText = "Play";
+        } else {
+            if (!toneGeneratorContext) {
+                if (!window.AudioContext) {
+                    alert("Web audio api is disabled, please enable it if you want to use tone generator.");
+                    return;
+                }
+                toneGeneratorContext = new AudioContext();
+            }
+            toneGeneratorOsc = toneGeneratorContext.createOscillator();
+            toneGeneratorOsc.type = "sine";
+            toneGeneratorOsc.frequency.value = parseInt(toneGeneratorText.innerText);
+            toneGeneratorOsc.connect(toneGeneratorContext.destination);
+            toneGeneratorOsc.start();
+            toneGeneratorPlayButton.innerText = "Stop";
+        }
+    });
+    
 }
 addExtra();
 

@@ -944,7 +944,7 @@ div.extra-panel span {
 
 div.extra-panel > div.extra-eq > div.select-eq-phone,
 div.extra-panel > div.extra-eq > div.filters,
-div.extra-panel > div.extra-eq > div.filters-autoeq-settings {
+div.extra-panel div.settings-row {
     margin: 0 0 0.5em 0;
 }
 
@@ -969,13 +969,13 @@ div.extra-panel > div.extra-eq > div.filters > div.filter > span > select {
     width: 70%;
 }
 
-div.extra-panel > div.extra-eq > div.filters-autoeq-settings > span {
+div.extra-panel div.settings-row > span {
     width: 30%;
     display: inline-block;
 }
 
 div.extra-panel > div.extra-eq > div.filters > div.filter > span > input,
-div.extra-panel > div.extra-eq > div.filters-autoeq-settings > span > input {
+div.extra-panel div.settings-row > span > input {
     width: 90%;
 }
 
@@ -995,6 +995,12 @@ div.extra-eq-overlay {
 
 div.extra-panel button {
     margin-bottom: 4px !important;
+}
+
+div.extra-panel > div.extra-tone-generator input[name='tone-generator-freq'] {
+    width: 100%;
+    border: 1px solid var(--accent-color-contrast);
+    
 }
 
 /*****
