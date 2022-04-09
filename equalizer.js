@@ -8,7 +8,10 @@ Equalizer = (function() {
     let config = {
         DefaultSampleRate: 48000,
         TrebleStartFrom: 7000,
-        AutoEQRange: [20, 20000],
+        // Avoid filters close to nyquist frequence by default, because the behavior is implementation dependent
+        // https://github.com/jaakkopasanen/AutoEq/issues/240
+        // https://github.com/jaakkopasanen/AutoEq/issues/411
+        AutoEQRange: [20, 15000],
         OptimizeQRange: [0.5, 2],
         OptimizeGainRange: [-12, 12],
         OptimizeDeltas: [

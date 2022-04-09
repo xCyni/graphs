@@ -2518,6 +2518,10 @@ function addExtra() {
         exportElem.download = phoneObj.fullName.replace(/^Uploaded /, "") + " Graphic Filters.txt";
         exportElem.click();
     });
+    let autoEQFromInput = document.querySelector(".filters-autoeq-settings input[name='autoeq-from']");
+    let autoEQToInput = document.querySelector(".filters-autoeq-settings input[name='autoeq-to']");
+    autoEQFromInput.value = Equalizer.config.AutoEQRange[0].toFixed(0);
+    autoEQToInput.value = Equalizer.config.AutoEQRange[1].toFixed(0);
     document.querySelector("div.extra-eq button.autoeq").addEventListener("click", () => {
         // Generate filters automatically
         let phoneSelected = eqPhoneSelect.value;
@@ -2535,8 +2539,6 @@ function addExtra() {
             alert("Please select model and target, if there are no target and multiple models are displayed then the second one will be selected as target.");
             return;
         }
-        let autoEQFromInput = document.querySelector(".filters-autoeq-settings input[name='autoeq-from']");
-        let autoEQToInput = document.querySelector(".filters-autoeq-settings input[name='autoeq-to']");
         let autoEQOverlay = document.querySelector(".extra-eq-overlay");
         autoEQOverlay.style.display = "block";
         setTimeout(() => {
