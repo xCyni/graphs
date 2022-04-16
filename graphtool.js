@@ -1457,8 +1457,9 @@ let norm_sel = ( default_normalization.toLowerCase() === "db" ) ? 0:1,
 
 function normalizePhone(p) {
     if (norm_sel) { // fr
+        let i = fr_to_ind(norm_fr);
         let avg = l => 20*Math.log10(d3.mean(l, d=>Math.pow(10,d/20)));
-        p.norm = 60 - avg(validChannels(p).map(l=> l[fr_to_ind(norm_fr)][1]));
+        p.norm = 60 - avg(validChannels(p).map(l=>l[i][1]));
     } else { // phon
         p.norm = find_offset(getAvg(p), norm_phon);
     }
