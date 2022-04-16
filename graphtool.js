@@ -1462,6 +1462,11 @@ function normalizePhone(p) {
     } else { // phon
         p.norm = find_offset(getAvg(p), norm_phon);
     }
+    if (p.eq) {
+        p.eq.norm = p.norm; // copy parent's norm to child
+    } else if (p.eqParent) {
+        p.norm = p.eqParent.norm; // set child's norm from parent
+    }
 }
 
 let norms = doc.select(".normalize").selectAll("div");
@@ -2410,6 +2415,7 @@ function addExtra() {
         let phoneObjEQ = addOrUpdatePhone(phoneObj.brand, phoneEQ,
             phoneObj.rawChannels.map(c => c ? Equalizer.apply(c, filters) : null));
         phoneObj.eq = phoneObjEQ;
+        phoneObjEQ.eqParent = phoneObj;
         showPhone(phoneObjEQ, false);
         activeElem.focus();
     };
