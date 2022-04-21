@@ -10,7 +10,8 @@
   {
     "name": "Sony",
     "phones": [
-      {"name":"Z1R", "file":["Z1R LowVolume", "Z1R MidVolume", "Z1R HighVolume"]}
+      {"name":"Z1R", "file":["Z1R LowVolume", "Z1R MidVolume", "Z1R HighVolume"]},
+      {"name":"Z1R ADV", "file":["Z1R ADV"]}
     ]
   },
   {
