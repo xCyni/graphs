@@ -25,5 +25,11 @@
     "phones": [
       {"name":"OLA"}
     ]
+  },
+  {
+    "name": "Raptgo",
+    "phones": [
+      {"name":"Hook-X"}
+    ]
   }
 ]
