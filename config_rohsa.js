@@ -39,7 +39,7 @@ const init_phones = [],                             // Optional. Which graphs to
 // Specify which targets to display
 const targets = [
     { type:"Reference",    files:["IEF IEM","IEF HP","Free Field","Diffuse Field","Harman IE 2016","Harman IE 2019 v2", "Harman OE 2018"] },
-    { type:"Personal",   files:["Banbeu","Precog","Super Review","Rohsa A","Rohsa B","Rohsa C","Rohsa D" ] }
+    { type:"Personal",   files:["Banbeu","Precog","Super Review","Rohsa 1.1A","Rohsa 1.1B","Rohsa 1.1C","Rohsa 1.1D","Rohsa 1.1E"] }
 ];
 
 
