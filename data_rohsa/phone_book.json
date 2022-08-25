@@ -18,7 +18,7 @@
     "name": "Moondrop",
     "phones": [
       {"name":"Variations"},
-      {"name":"SSP"}
+      {"name":"SSP", "file":["SSP 7K", "SSP 8K"]}
     ]
   },
   {
